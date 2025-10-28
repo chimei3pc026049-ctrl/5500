@@ -196,8 +196,9 @@
                                 <input type="text" id="approving_manager" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                             <div>
-                                <label for="distribution_method" class="block text-sm font-medium text-gray-700">發料方式</label>
-                                <input type="text" id="distribution_method" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
+                                <!-- UPDATED: Label and Input Type -->
+                                <label for="distribution_method" class="block text-sm font-medium text-gray-700">發料時間</label>
+                                <input type="datetime-local" id="distribution_method" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                              <div>
                                 <!-- UPDATED: Renamed from '發料人員姓名' -->
@@ -755,6 +756,8 @@
                     const card = document.createElement('div');
                     card.className = 'p-4 border rounded-lg bg-gray-50 space-y-2';
                     const createdAt = req.createdAt?.toDate() ? req.createdAt.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : 'N/A';
+                    // Format dispatchMethod (which is now dispatchTime)
+                    const dispatchTime = req.dispatchMethod ? new Date(req.dispatchMethod).toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : '---';
 
                     let managerActionsHTML = '';
                     if (req.dispatchStatus === '待單位主管簽核') {
@@ -780,7 +783,8 @@
                             ${req.approvingManager ? `<p><strong>實際簽核主管:</strong> ${req.approvingManager}</p>` : ''}
                             ${req.managerRemarks ? `<p class="sm:col-span-2"><strong>主管備註:</strong> ${req.managerRemarks}</p>` : ''}
                             
-                            <p><strong>發料方式:</strong> ${req.dispatchMethod || '---'}</p>
+                            <!-- UPDATED: Label -->
+                            <p><strong>發料時間:</strong> ${dispatchTime}</p>
                             <!-- UPDATED: Field labels -->
                             <p><strong>發料藥佐:</strong> ${req.driverName || '---'}</p>
                             <p><strong>核對藥師:</strong> ${req.driverPhone || '---'}</p>
@@ -875,7 +879,8 @@
                     '材料編號': req.materialId,
                     '單位': req.itemUnit,
                     '數量': req.quantity,
-                    '發料方式': req.dispatchMethod,
+                    // UPDATED: Excel column name
+                    '發料時間': req.dispatchMethod,
                     // UPDATED: Excel column names
                     '發料藥佐': req.driverName,
                     '核對藥師': req.driverPhone,
@@ -887,6 +892,7 @@
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, '藥品材料申請單');
+                XExample: `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`
                 XLSX.writeFile(workbook, `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`);
             }
 
@@ -946,8 +952,8 @@
                     remarks: request.remarks,
                     
                     process_status: request.dispatchStatus,
-                    distribution_method: request.dispatchMethod,
                     // UPDATED: Field mapping
+                    distribution_method: request.dispatchMethod, // Now datetime-local
                     issuer_assistant: request.driverName, 
                     verifying_pharmacist: request.driverPhone, 
                     applicant_signee: request.applicantSignee,
@@ -1209,8 +1215,8 @@
                         // Handle admin update
                         const formData = {
                              dispatchStatus: document.getElementById('process_status').value, 
-                             dispatchMethod: document.getElementById('distribution_method').value, 
                              // UPDATED: Admin fields
+                             dispatchMethod: document.getElementById('distribution_method').value, // Now datetime
                              driverName: document.getElementById('issuer_assistant').value, 
                              driverPhone: document.getElementById('verifying_pharmacist').value, 
                              applicantSignee: document.getElementById('applicant_signee').value,
@@ -1255,7 +1261,7 @@
                              approvingManager: '', // Actual approver, filled by link
                              managerRemarks: '',
                             dispatchStatus: '待單位主管簽核', 
-                             dispatchMethod: '', 
+                             dispatchMethod: '', // DB field for distribution_method (datetime)
                              driverName: '', // DB field for issuer_assistant
                              driverPhone: '', // DB field for verifying_pharmacist
                              applicantSignee: '', // NEW: DB field for applicant_signee
@@ -1294,5 +1300,4 @@
     </script>
 </body>
 </html>
-
 
