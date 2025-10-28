@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佳里奇美醫院領料申請系統</title>
+    <!-- 標題已更新 -->
+    <title>佳里奇美醫院藥品材料申請系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -32,7 +33,6 @@
             border-radius: 9999px;
             text-transform: uppercase;
         }
-        /* New Status Classes for Material Requisition */
         .status-manager-approval { background-color: #e0e7ff; color: #3730a3; } /* 待單位主管簽核 */
         .status-manager-rejected { background-color: #FEF9C3; color: #713F12; } /* 主管退回 */
         .status-pending { background-color: #fef3c7; color: #92400e; } /* 待發料單位處理 */
@@ -69,6 +69,16 @@
             color: #2563eb;
             border-bottom-color: #2563eb;
         }
+        /* 確保 datalist 選項可見 */
+        datalist {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 99;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -76,13 +86,9 @@
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-4">
-                <!-- Using a placeholder for the logo -->
                 <div class="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">CM</div>
-                <h1 class="text-xl sm:text-3xl font-bold text-gray-800">領料申請系統</h1>
+                <h1 class="text-xl sm:text-3xl font-bold text-gray-800">藥品材料申請系統</h1>
             </div>
-            <a href="https://intranet.chimei.org.tw/tcp/32500/index.html" target="_self"
-               class="text-sm font-medium text-blue-600 hover:text-blue-800 transition duration-150 ease-in-out whitespace-nowrap">
-            </a>
         </header>
 
         <!-- Tab Navigation -->
@@ -101,47 +107,72 @@
             <div id="tab-content-apply" class="tab-content bg-white p-6 sm:p-8 rounded-b-2xl shadow-lg">
                 <form id="dispatchForm" class="space-y-6">
                     <input type="hidden" id="request-id">
-                    <!-- Form Fields Grid -->
+                    
+                    <!-- Form Fields Grid - COMPLETELY REBUILT -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 border-t border-b border-gray-200 py-6">
-                        <div class="lg:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700">院區</label>
-                            <div id="branch-options" class="mt-2 flex flex-wrap items-center gap-4 sm:gap-6 text-sm sm:text-base text-gray-700">
-                                  <label class="flex items-center space-x-2"><input type="checkbox" name="branch" value="總院" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>總院</span></label>
-                                  <label class="flex items-center space-x-2"><input type="checkbox" name="branch" value="柳營院區" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>柳營院區</span></label>
-                                  <label class="flex items-center space-x-2"><input type="checkbox" name="branch" value="佳里院區" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>佳里院區</span></label>
-                            </div>
-                        </div>
-                        <div><label for="item_name" class="block text-sm font-medium text-gray-700">領料品項名稱</label><input type="text" id="item_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
+                        
+                        <!-- Row 1 -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">領料品項類別</label>
-                            <div class="mt-2 flex items-center space-x-6 text-sm sm:text-base">
-                                <label class="flex items-center space-x-2"><input type="radio" name="item_category" value="耗材類" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"><span>耗材類</span></label>
-                                <label class="flex items-center space-x-2"><input type="radio" name="item_category" value="儀器類" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"><span>儀器類</span></label>
-                                <label class="flex items-center space-x-2"><input type="radio" name="item_category" value="其他" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"><span>其他</span></label>
-                            </div>
+                            <label for="applicant_unit" class="block text-sm font-medium text-gray-700">申請單位</label>
+                            <input type="text" id="applicant_unit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
-                        <div><label for="pickup_location" class="block text-sm font-medium text-gray-700">領料地點</label><input type="text" id="pickup_location" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
-                        <div><label for="quantity" class="block text-sm font-medium text-gray-700">預計數量 (含單位)</label><input type="text" id="quantity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="例如: 10 盒"></div>
-                        <div><label for="required_start_time" class="block text-sm font-medium text-gray-700">預定領料時間 (起)</label><input type="datetime-local" id="required_start_time" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
-                        <div><label for="required_end_time" class="block text-sm font-medium text-gray-700">預定領料時間 (迄)</label><input type="datetime-local" id="required_end_time" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
-                        <div><label for="applicant_unit" class="block text-sm font-medium text-gray-700">申請單位</label><input type="text" id="applicant_unit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
-                        <div><label for="cost_code" class="block text-sm font-medium text-gray-700">費用部門代號</label><input type="text" id="cost_code" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
-                        <div><label for="extension" class="block text-sm font-medium text-gray-700">聯絡分機</label><input type="text" id="extension" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
-                        <div><label for="contact_group" class="block text-sm font-medium text-gray-700">聯絡群組</label><input type="text" id="contact_group" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value=""></div>
-                        <div class="md:col-span-2"><label for="applicant_name" class="block text-sm font-medium text-gray-700">申請人姓名</label><input type="text" id="applicant_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="請輸入姓名"></div>
-                        <div class="lg:col-span-3">
-                            <p class="block text-sm font-medium text-red-600 mb-1">領料補充說明：</p>
-                            <div class="mt-1 block w-full px-3 py-2 bg-red-50 border-2 border-red-300 rounded-md shadow-sm text-sm text-red-800 font-semibold">
-                                1. 請於預定領料日期前三日提出申請,以利發料單位備料。
-                                2. 若遇緊急臨時領料狀況,請提出申請單後並電話聯繫發料承辦人員緊急處理。
-                            </div>
+                        <div>
+                            <label for="cost_code" class="block text-sm font-medium text-gray-700">費用部門代號</label>
+                            <input type="text" id="cost_code" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
+                        <div>
+                            <label for="applicant_name" class="block text-sm font-medium text-gray-700">申請人姓名</label>
+                            <input type="text" id="applicant_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="請輸入姓名">
+                        </div>
+
+                        <!-- Row 2: Dynamic Item Search -->
+                        <div>
+                            <label for="item_name_search" class="block text-sm font-medium text-gray-700">申請藥品 (搜尋品名或編號)</label>
+                            <input type="text" id="item_name_search" list="item-list" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" autocomplete="off">
+                            <datalist id="item-list"></datalist>
+                        </div>
+                        <div id="item_name_other_container" class="hidden">
+                            <label for="item_name_other" class="block text-sm font-medium text-gray-700">品名 (其他)</label>
+                            <input type="text" id="item_name_other" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="material_id" class="block text-sm font-medium text-gray-700">材料編號</label>
+                            <input type="text" id="material_id" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- Row 3 -->
+                        <div>
+                            <label for="item_unit" class="block text-sm font-medium text-gray-700">單位</label>
+                            <input type="text" id="item_unit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">數量</label>
+                            <input type="text" id="quantity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="例如: 10">
+                        </div>
+                        <div>
+                            <label for="approving_manager_name" class="block text-sm font-medium text-gray-700">單位主管簽核</label>
+                            <input type="text" id="approving_manager_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="請輸入主管姓名">
+                        </div>
+
+                        <!-- Row 4: Remarks -->
                         <div class="lg:col-span-3">
                             <label for="remarks" class="block text-sm font-medium text-gray-700">備註</label>
                             <textarea id="remarks" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="若有特殊需求請在此說明..."></textarea>
                         </div>
+
+                        <!-- Info Box -->
+                        <div class="lg:col-span-3">
+                            <p class="block text-sm font-medium text-red-600 mb-1">領料補充說明：</p>
+                            <!-- UPDATED INFO BOX CONTENT -->
+                            <div class="mt-1 block w-full px-3 py-2 bg-red-50 border-2 border-red-300 rounded-md shadow-sm text-sm text-red-800 font-semibold space-y-1">
+                                <p>þ 申請酒精/藥品的結單時間：每周三中午12:00止</p>
+                                <p>þ 領取申請酒精/藥品的地點時間：B1藥庫每周四下午13:00~16:00止</p>
+                                <p>þ 如遇國定假日或春節連假，將另行公告提早領物資的日期。</p>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Admin Section (Unchanged, only IDs updated) -->
                     <div id="admin-section" class="hidden border-t border-gray-200 pt-6 mt-6">
                         <h2 class="text-lg font-semibold text-gray-800 mb-4">發料單位處理狀況</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -161,7 +192,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="approving_manager" class="block text-sm font-medium text-gray-700">簽核主管</label>
+                                <label for="approving_manager" class="block text-sm font-medium text-gray-700">簽核主管 (實際)</label>
                                 <input type="text" id="approving_manager" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                             <div>
@@ -169,12 +200,19 @@
                                 <input type="text" id="distribution_method" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                              <div>
-                                <label for="issuer_name" class="block text-sm font-medium text-gray-700">發料人員姓名</label>
-                                <input type="text" id="issuer_name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
+                                <!-- UPDATED: Renamed from '發料人員姓名' -->
+                                <label for="issuer_assistant" class="block text-sm font-medium text-gray-700">發料藥佐</label>
+                                <input type="text" id="issuer_assistant" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                              <div>
-                                <label for="issuer_extension" class="block text-sm font-medium text-gray-700">發料人員分機</label>
-                                <input type="text" id="issuer_extension" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
+                                <!-- UPDATED: Renamed from '發料人員分機' -->
+                                <label for="verifying_pharmacist" class="block text-sm font-medium text-gray-700">核對藥師</label>
+                                <input type="text" id="verifying_pharmacist" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
+                            </div>
+                            <!-- NEW: Added Applicant Signee Field -->
+                            <div>
+                                <label for="applicant_signee" class="block text-sm font-medium text-gray-700">申請單位簽收人</label>
+                                <input type="text" id="applicant_signee" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled-input">
                             </div>
                             <div class="md:col-span-2">
                                 <label for="management_remarks" class="block text-sm font-medium text-gray-700">發料單位備註</label>
@@ -250,13 +288,17 @@
                          </div>
                      </div>
 
+                     <!-- Charts Updated -->
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                         <div class="p-4 border rounded-lg lg:col-span-2">
+                             <h3 class="text-center font-semibold mb-4 text-gray-700">熱門申請品項 (Top 10)</h3>
+                             <canvas id="item-chart"></canvas>
+                         </div>
                          <div class="p-4 border rounded-lg lg:col-span-2">
                              <h3 class="text-center font-semibold mb-4 text-gray-700">各發料人員發料趟次統計</h3>
                              <canvas id="issuer-chart"></canvas>
                          </div>
                           <div class="p-4 border rounded-lg"><h3 class="text-center font-semibold mb-4 text-gray-700">申請狀態分佈</h3><canvas id="status-chart"></canvas></div>
-                          <div class="p-4 border rounded-lg"><h3 class="text-center font-semibold mb-4 text-gray-700">各院區申請量</h3><canvas id="branch-chart"></canvas></div>
                      </div>
                  </div>
                  <div id="stats-login-prompt" class="text-center py-10">
@@ -279,10 +321,26 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // REMOVED: signInWithEmailAndPassword - Using local auth instead
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // REMOVED: getDoc - Using local auth instead
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 藥品/材料資料庫 ---
+        const itemDatabase = [
+            { name: "75% 酒精 4000 mL", id: "03-002-42A025", unit: "桶" },
+            { name: "75% 酒精 500 mL", id: "03-002-42A060", unit: "瓶" },
+            { name: "C-B complex (2mL)針", id: "01-007-17V171", unit: "A" },
+            { name: "Hyoscine Butylbromide(20mg/mL)", id: "01-003-13B042", unit: "A" },
+            { name: "Lactated Ringer軟袋 (500mL)", id: "01-007-17L010", unit: "包" },
+            { name: "Lidocaine(局麻)400mg/20mL針", id: "01-002-12X022", unit: "V" },
+            { name: "NaCl(0.9%,20mL)針", id: "01-007-17N064", unit: "盒" },
+            { name: "Parmason 0.2%漱口水(200mL)", id: "01-009-39C172", unit: "瓶" },
+            { name: "Rocuronium-hameln (50mg/5mL/V)", id: "01-002-12R012", unit: "V" },
+            { name: "Saline 沖洗用(500 mL)", id: "03-009-39N161", unit: "瓶" },
+            { name: "Xylocaine 10% Spray 50mL", id: "01-002-32X054", unit: "瓶" },
+            { name: "Xylocaine Jelly 2%30 gm", id: "31-002-32X012", unit: "條" },
+            { name: "雙氧水 3% 450 mL", id: "01-009-39H024", unit: "瓶" },
+            { name: "其他(自行輸入)", id: "", unit: "" }
+        ];
 
         window.addEventListener('load', () => {
             const state = {
@@ -293,9 +351,10 @@
                 db: null, // Firestore instance
                 auth: null, // Auth instance
                 deepLinkedRequestId: null,
+                itemDatabase: itemDatabase // Store database in state
             };
 
-            let statusChartInstance, branchChartInstance, issuerChartInstance;
+            let statusChartInstance, itemChartInstance, issuerChartInstance;
 
             // --- CACHE ELEMENTS ---
             const form = document.getElementById('dispatchForm');
@@ -304,8 +363,8 @@
             const clearBtn = document.getElementById('clear-btn');
             const requestIdInput = document.getElementById('request-id');
             const adminSection = document.getElementById('admin-section');
-            // Update admin fields list for mass disable/enable
-            const adminFields = ['process_status', 'distribution_method', 'issuer_name', 'issuer_extension', 'management_remarks'].map(id => document.getElementById(id));
+            // UPDATED: adminFields array
+            const adminFields = ['process_status', 'distribution_method', 'issuer_assistant', 'verifying_pharmacist', 'applicant_signee', 'management_remarks'].map(id => document.getElementById(id));
 
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -329,6 +388,13 @@
             const exportExcelBtn = document.getElementById('export-excel-btn');
             const statsMonthFilter = document.getElementById('stats-month-filter');
             const statsTotalRequests = document.getElementById('stats-total-requests');
+            
+            // --- NEW FORM FIELD ELEMENTS ---
+            const itemSearchInput = document.getElementById('item_name_search');
+            const materialIdInput = document.getElementById('material_id');
+            const itemUnitInput = document.getElementById('item_unit');
+            const otherItemContainer = document.getElementById('item_name_other_container');
+            const otherItemInput = document.getElementById('item_name_other');
 
             // --- MODAL ELEMENTS & FUNCTIONS ---
             const modal = document.getElementById('custom-modal');
@@ -392,8 +458,6 @@
                 confirmBtn.focus();
             }
             
-            // REMOVED checkAdminRole FUNCTION - Using local auth instead
-            
             function promptLogin() {
                 modalTitle.textContent = '管理員登入';
                 modalContent.innerHTML = `<div class="space-y-4">
@@ -413,7 +477,7 @@
                 
                 const loginBtn = document.getElementById('modal-login-btn'), 
                       cancelBtn = document.getElementById('modal-cancel-btn'), 
-                      usernameInput = document.getElementById('modal-username'), // Changed from email
+                      usernameInput = document.getElementById('modal-username'), 
                       passwordInput = document.getElementById('modal-password'), 
                       errorEl = document.getElementById('modal-error');
                 
@@ -422,7 +486,7 @@
                 const handleLogin = async () => {
                     const username = usernameInput.value.trim();
                     const password = passwordInput.value.trim();
-                    errorEl.textContent = ''; // Clear previous error
+                    errorEl.textContent = ''; 
 
                     // --- Hardcoded Obfuscated Check for admin:cch5500 ---
                     const P1 = 'cch';
@@ -438,16 +502,13 @@
                         return;
                     }
 
-
                     if (username === adminUsername && password === adminPassword) {
-                        // Success: User is authenticated locally
                         hideModal();
                         state.isLoggedIn = true;
                         showAlert('登入成功！', '管理員登入');
                         updateUI();
                         setActiveTab('admin');
                     } else {
-                        // Failure
                         errorEl.textContent = '帳號或密碼錯誤。';
                         const modalBox = modal.querySelector('div'); modalBox.classList.add('animate-shake'); setTimeout(() => { modalBox.classList.remove('animate-shake'); }, 500);
                     }
@@ -455,7 +516,7 @@
                 
                 loginBtn.onclick = handleLogin;
                 passwordInput.onkeydown = (e) => { if (e.key === 'Enter') handleLogin(); };
-                usernameInput.onkeydown = (e) => { if (e.key === 'Enter') passwordInput.focus(); }; // Changed from emailInput
+                usernameInput.onkeydown = (e) => { if (e.key === 'Enter') passwordInput.focus(); }; 
                 cancelBtn.onclick = hideModal;
             }
 
@@ -531,7 +592,6 @@
 
             // --- AUTHENTICATION & UI ---
             function logout() { 
-                // *** SIGNOUT FIREBASE AUTH USER (cleanup any residual email/password session) ***
                 if (state.auth && state.auth.currentUser && !state.auth.currentUser.isAnonymous) {
                     signOut(state.auth).catch(e => console.error("Error signing out:", e));
                 }
@@ -558,7 +618,6 @@
                     statsTabBtn.classList.remove('hidden');
                     if (logoutBtn) logoutBtn.classList.remove('hidden');
 
-                    // Filter for '待發料單位處理'
                     const pendingCount = state.requests.filter(r => r.dispatchStatus === '待發料單位處理').length;
                     if(pendingCount > 0) {
                         pendingCountBadge.textContent = pendingCount;
@@ -578,7 +637,6 @@
                 renderAdminList();
             }
 
-            // Updated status mapping
             function getStatusBadgeClass(status) {
                  switch(status) {
                     case '待單位主管簽核': return 'status-manager-approval';
@@ -598,10 +656,10 @@
                     return state.requests;
                 }
                 const [year, month] = filterValue.split('-').map(Number);
-                // Note: startTime is actually required_start_time in the new model but using the old field name for simplicity in DB structure
+                // Use createdAt for filtering, as startTime was removed
                 return state.requests.filter(req => {
-                    if (!req.startTime) return false;
-                    const reqDate = new Date(req.startTime);
+                    if (!req.createdAt || !req.createdAt.toDate) return false;
+                    const reqDate = req.createdAt.toDate();
                     return reqDate.getFullYear() === year && (reqDate.getMonth() + 1) === month;
                 });
             }
@@ -615,8 +673,8 @@
                         try {
                             if (action.approved) {
                                 await updateDoc(docRef, {
-                                     dispatchStatus: '待發料單位處理', // Changed from '待管理單位處理'
-                                    approvingManager: action.name,
+                                     dispatchStatus: '待發料單位處理', 
+                                    approvingManager: action.name, // This is the *actual* approver
                                     managerRemarks: action.remarks
                                  });
                                 showAlert('申請單已簽核！');
@@ -654,7 +712,6 @@
                     const createdAt = req.createdAt?.toDate() ? req.createdAt.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : 'N/A';
 
                     let buttonsHTML = '';
-                    // Check for new '待單位主管簽核' status
                     if (req.dispatchStatus === '待單位主管簽核') {
                         buttonsHTML += `<button class="text-sm text-green-600 hover:text-green-800 font-medium approve-btn">主管簽核</button>`;
                     }
@@ -665,6 +722,7 @@
                         <p class="font-semibold text-gray-800">${req.applicantUnit || 'N/A'} - ${req.applicantName || 'N/A'}</p>
                         <p class="text-xs text-gray-400">單號: ${req.requestId || 'N/A'}</p>
                         <p class="text-sm text-gray-500">申請時間: ${createdAt}</p>
+                        <p class="text-sm text-gray-700 font-medium">品項: ${req.itemName || 'N/A'} (數量: ${req.quantity || 'N/A'})</p>
                     </div><div class="flex items-center flex-shrink-0 gap-4">${buttonsHTML} <span class="status-badge ${getStatusBadgeClass(req.dispatchStatus)}">${req.dispatchStatus}</span></div>`;
 
                     const approveBtn = card.querySelector('.approve-btn');
@@ -696,15 +754,14 @@
                 results.forEach(req => {
                     const card = document.createElement('div');
                     card.className = 'p-4 border rounded-lg bg-gray-50 space-y-2';
-                    const startTime = req.startTime ? new Date(req.startTime).toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : '未指定';
                     const createdAt = req.createdAt?.toDate() ? req.createdAt.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : 'N/A';
 
                     let managerActionsHTML = '';
-                    // Check for new '待單位主管簽核' status
                     if (req.dispatchStatus === '待單位主管簽核') {
                         managerActionsHTML = `<div class="mt-2 pt-2 border-t"><button class="w-full text-center py-2 px-4 bg-green-100 text-green-800 rounded-md hover:bg-green-200 approve-btn-search">主管簽核</button></div>`;
                     }
 
+                    // --- Search Card Rebuilt ---
                     card.innerHTML = `
                         <div class="flex justify-between items-center">
                             <p class="font-semibold text-gray-800">${req.applicantUnit} - ${req.applicantName}</p>
@@ -713,17 +770,25 @@
                         <p class="text-xs text-gray-500">申請單號: ${req.requestId || 'N/A'}</p>
                         <div class="text-sm text-gray-600 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                             <p><strong>申請時間:</strong> ${createdAt}</p>
-                            <p><strong>預定領料:</strong> ${startTime}</p>
-                            <p><strong>品項類別:</strong> ${req.itemCategory || '---'}</p>
-                            <p><strong>預計數量:</strong> ${req.quantity || '---'}</p>
-                            <p class="sm:col-span-2"><strong>領料地點:</strong> ${req.pickupLocation || '---'}</p>
+                            <p><strong>申請人:</strong> ${req.applicantName || '---'}</p>
                             <p class="sm:col-span-2"><strong>品項名稱:</strong> ${req.itemName || '---'}</p>
-                            ${req.approvingManager ? `<p><strong>簽核主管:</strong> ${req.approvingManager}</p>` : ''}
+                            <p><strong>材料編號:</strong> ${req.materialId || '---'}</p>
+                            <p><strong>單位:</strong> ${req.itemUnit || '---'}</p>
+                            <p><strong>數量:</strong> ${req.quantity || '---'}</p>
+                            <p><strong>送簽主管:</strong> ${req.submittedApprover || '---'}</p>
+                            
+                            ${req.approvingManager ? `<p><strong>實際簽核主管:</strong> ${req.approvingManager}</p>` : ''}
                             ${req.managerRemarks ? `<p class="sm:col-span-2"><strong>主管備註:</strong> ${req.managerRemarks}</p>` : ''}
-                            <p><strong>發料方式:</strong> ${req.distributionMethod || '---'}</p>
-                            <p><strong>發料人員:</strong> ${req.issuerName || '---'}</p><p><strong>發料分機:</strong> ${req.issuerExtension || '---'}</p>
+                            
+                            <p><strong>發料方式:</strong> ${req.dispatchMethod || '---'}</p>
+                            <!-- UPDATED: Field labels -->
+                            <p><strong>發料藥佐:</strong> ${req.driverName || '---'}</p>
+                            <p><strong>核對藥師:</strong> ${req.driverPhone || '---'}</p>
+                            <!-- NEW: Added applicantSignee -->
+                            <p><strong>申請單位簽收人:</strong> ${req.applicantSignee || '---'}</p>
+                            
                             <p class="sm:col-span-2"><strong>申請備註:</strong> ${req.remarks || '---'}</p>
-                            ${req.managementRemarks ? `<p class="sm:col-span-2"><strong>發料單位備註:</strong> ${req.managementRemarks}</p>` : ''}
+                            ${req.adminRemarks ? `<p class="sm:col-span-2"><strong>發料單位備註:</strong> ${req.adminRemarks}</p>` : ''}
                         </div>
                         ${managerActionsHTML}`;
                     searchResults.appendChild(card);
@@ -741,11 +806,11 @@
                 const filteredRequests = getFilteredRequests();
                 statsTotalRequests.textContent = filteredRequests.length;
 
-                // --- Issuer Chart (Driver Chart was renamed) ---
+                // --- Issuer Chart ---
                 const issuerCtx = document.getElementById('issuer-chart').getContext('2d');
                 const issuerTrips = filteredRequests
-                    .filter(r => r.dispatchStatus === '已發料' && r.issuerName)
-                    .reduce((acc, req) => { acc[req.issuerName] = (acc[req.issuerName] || 0) + 1; return acc; }, {});
+                    .filter(r => r.dispatchStatus === '已發料' && r.driverName) // DB field is driverName
+                    .reduce((acc, req) => { acc[req.driverName] = (acc[req.driverName] || 0) + 1; return acc; }, {});
                 const sortedIssuers = Object.entries(issuerTrips).sort((a, b) => b[1] - a[1]);
                 if (issuerChartInstance) issuerChartInstance.destroy();
                 issuerChartInstance = new Chart(issuerCtx, {
@@ -762,61 +827,98 @@
                     options: { responsive: true, maintainAspectRatio: true }
                 });
 
-                // --- Branch Chart ---
-                const branchCtx = document.getElementById('branch-chart').getContext('2d');
-                const branchCounts = filteredRequests.reduce((acc, req) => { if (req.branch && Array.isArray(req.branch)) { req.branch.forEach(b => { acc[b] = (acc[b] || 0) + 1; }); } return acc; }, {});
-                if(branchChartInstance) branchChartInstance.destroy();
-                branchChartInstance = new Chart(branchCtx, {
-                    type: 'bar', data: { labels: Object.keys(branchCounts), datasets: [{ label: '申請次數', data: Object.values(branchCounts), backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 }] },
-                    options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                // --- Item Chart (New) ---
+                const itemCtx = document.getElementById('item-chart').getContext('2d');
+                const itemCounts = filteredRequests
+                    .filter(r => r.itemName) // Ensure item name exists
+                    .reduce((acc, req) => { 
+                        const name = req.itemName.split(' (')[0]; // Simplify name
+                        acc[name] = (acc[name] || 0) + 1; 
+                        return acc; 
+                    }, {});
+                const sortedItems = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 10); // Top 10
+                if(itemChartInstance) itemChartInstance.destroy();
+                itemChartInstance = new Chart(itemCtx, {
+                    type: 'bar', 
+                    data: { 
+                        labels: sortedItems.map(d => d[0]), 
+                        datasets: [{ 
+                            label: '申請次數', 
+                            data: sortedItems.map(d => d[1]), 
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)', 
+                            borderColor: 'rgba(59, 130, 246, 1)', 
+                            borderWidth: 1 
+                        }] 
+                    },
+                    options: { 
+                        indexAxis: 'y', // Horizontal bar chart
+                        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                        plugins: { legend: { display: false } }
+                    }
                 });
             }
 
             // --- EXCEL EXPORT ---
             function exportToExcel() {
                 const filteredRequests = getFilteredRequests();
+                // --- Columns Rebuilt ---
                 const dataToExport = filteredRequests.map(req => ({
                     '申請單號': req.requestId,
                     '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW') || '',
                     '申請狀態': req.dispatchStatus,
                     '申請單位': req.applicantUnit,
                     '申請人': req.applicantName,
-                    '簽核主管': req.approvingManager,
+                    '送簽主管': req.submittedApprover,
+                    '實際簽核主管': req.approvingManager,
                     '主管備註': req.managerRemarks,
                     '領料品項名稱': req.itemName,
-                    '院區': req.branch ? req.branch.join(', ') : '',
-                    '品項類別': req.itemCategory || '',
-                    '預計數量': req.quantity || '',
-                    '預定領料時間 (起)': req.startTime,
-                    '預定領料時間 (迄)': req.endTime,
-                    '發料方式': req.distributionMethod,
-                    '發料人員姓名': req.issuerName,
-                    '發料人員分機': req.issuerExtension,
+                    '材料編號': req.materialId,
+                    '單位': req.itemUnit,
+                    '數量': req.quantity,
+                    '發料方式': req.dispatchMethod,
+                    // UPDATED: Excel column names
+                    '發料藥佐': req.driverName,
+                    '核對藥師': req.driverPhone,
+                    // NEW: Added applicantSignee
+                    '申請單位簽收人': req.applicantSignee || '',
                     '申請備註': req.remarks,
-                    '發料單位備註': req.managementRemarks
+                    '發料單位備註': req.adminRemarks
                 }));
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, '領料申請單');
-                XLSX.writeFile(workbook, `領料申請單_${statsMonthFilter.value || '全部'}.xlsx`);
+                XLSX.utils.book_append_sheet(workbook, worksheet, '藥品材料申請單');
+                XLSX.writeFile(workbook, `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`);
             }
 
             // --- FORM LOGIC ---
             function resetForm() {
-                 form.reset();
+                form.reset();
                 adminSection.classList.add('hidden');
                 document.getElementById('approving_manager').value = '';
-                document.getElementById('management_remarks').value = ''; // Updated ID
+                document.getElementById('management_remarks').value = '';
                 state.editingRequestId = null;
-                 requestIdInput.value = '';
-                 submitBtn.textContent = '提交新申請';
+                requestIdInput.value = '';
+                submitBtn.textContent = '提交新申請';
                 submitBtn.disabled = false;
                 submitBtn.classList.replace('bg-green-600', 'bg-blue-600');
-                 submitBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
-                 clearBtn.classList.remove('hidden');
+                submitBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+                clearBtn.classList.remove('hidden');
 
                 const allUserFields = form.querySelectorAll('input, textarea, select');
-                allUserFields.forEach(el => { el.disabled = false; el.classList.remove('disabled-input'); });
+                allUserFields.forEach(el => {
+                    if (!el.closest('#admin-section')) {
+                        el.disabled = false;
+                        el.classList.remove('disabled-input');
+                    }
+                });
+
+                // Reset dynamic fields
+                otherItemContainer.classList.add('hidden');
+                otherItemInput.value = '';
+                materialIdInput.disabled = false;
+                itemUnitInput.disabled = false;
+                materialIdInput.classList.remove('disabled-input');
+                itemUnitInput.classList.remove('disabled-input');
 
                 adminSection.classList.add('hidden');
                 adminFields.forEach(el => { el.disabled = true; el.classList.add('disabled-input'); });
@@ -826,64 +928,70 @@
                 const request = state.requests.find(r => r.id === id); if (!request) return;
 
                 resetForm();
-                 adminSection.classList.remove('hidden');
+                adminSection.classList.remove('hidden');
                 state.editingRequestId = id;
-                 requestIdInput.value = id;
+                requestIdInput.value = id;
                 document.getElementById('display_request_id').value = request.requestId || '';
-                document.querySelectorAll('input[name="branch"]').forEach(cb => cb.checked = request.branch && request.branch.includes(cb.value));
 
-                // Updated field mapping
+                // --- Field Mapping Rebuilt ---
                 const fieldMapping = {
-                    item_name: request.itemName, // Updated name
-                    pickup_location: request.pickupLocation, // Updated name
-                    quantity: request.quantity, // Updated name
-                    required_start_time: request.startTime, // Using new ID but old DB name
-                    required_end_time: request.endTime, // Using new ID but old DB name
                     applicant_unit: request.applicantUnit,
                     cost_code: request.costCode,
-                    extension: request.extension,
-                    contact_group: request.contactGroup,
+                    item_name_search: request.itemName,
+                    material_id: request.materialId,
+                    item_unit: request.itemUnit,
+                    quantity: request.quantity,
                     applicant_name: request.applicantName,
-                    process_status: request.dispatchStatus, // Updated ID (still using dispatchStatus DB field)
-                    distribution_method: request.dispatchMethod, // Updated ID (still using dispatchMethod DB field)
-                    issuer_name: request.driverName, // Updated ID (still using driverName DB field)
-                    issuer_extension: request.driverPhone, // Updated ID (still using driverPhone DB field)
+                    approving_manager_name: request.submittedApprover, 
                     remarks: request.remarks,
-                    management_remarks: request.adminRemarks // Updated ID (still using adminRemarks DB field)
+                    
+                    process_status: request.dispatchStatus,
+                    distribution_method: request.dispatchMethod,
+                    // UPDATED: Field mapping
+                    issuer_assistant: request.driverName, 
+                    verifying_pharmacist: request.driverPhone, 
+                    applicant_signee: request.applicantSignee,
+                    management_remarks: request.adminRemarks 
                 };
+
                 for (const [key, value] of Object.entries(fieldMapping)) {
                     const el = document.getElementById(key);
                     if (el) el.value = value || '';
                 }
-                document.getElementById('approving_manager').value = request.approvingManager || '';
-                const categoryRadio = document.querySelector(`input[name="item_category"][value="${request.itemCategory}"]`); // Updated name
-                if (categoryRadio) categoryRadio.checked = true;
+                document.getElementById('approving_manager').value = request.approvingManager || ''; 
+
+                // Disable all user-facing form fields
+                const userFields = [
+                    'applicant_unit', 'cost_code', 'item_name_search', 'material_id', 
+                    'item_unit', 'quantity', 'applicant_name', 'approving_manager_name', 'remarks'
+                ].map(id => document.getElementById(id));
+                
+                userFields.forEach(el => { 
+                    if (el) {
+                        el.disabled = true; 
+                        el.classList.add('disabled-input');
+                    }
+                });
 
                 const isAdmin = state.isLoggedIn;
-                // Updated status check for admin edit
                 const canAdminEdit = isAdmin && ['待發料單位處理', '已發料', '申請取消', '無法發料'].includes(request.dispatchStatus);
-
-                const userFields = form.querySelectorAll('input[type="text"], input[type="number"], input[type="datetime-local"], input[type="radio"], input[type="checkbox"], textarea#remarks');
-                userFields.forEach(el => { el.disabled = true; });
 
                 adminFields.forEach(el => {
                     el.disabled = !canAdminEdit;
                     el.classList.toggle('disabled-input', !canAdminEdit);
                 });
-
-                document.getElementById('process_status').disabled = !canAdminEdit; // Updated ID
+                document.getElementById('process_status').disabled = !canAdminEdit;
 
                 if (canAdminEdit) {
                     submitBtn.textContent = '更新處理進度';
                     submitBtn.disabled = false;
                     submitBtn.classList.replace('bg-blue-600', 'bg-green-600');
-                     submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+                    submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
                 } else {
                     submitBtn.textContent = '檢視中 (唯讀)';
                     submitBtn.disabled = true;
                 }
                 clearBtn.classList.add('hidden');
-
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
@@ -942,7 +1050,7 @@
 
             async function initFirebase() {
                 try {
-                    // Firebase Configuration (Hardcoded for Canvas compatibility)
+                    console.log("[FirebaseInit] Starting initialization...");
                     const firebaseConfig = {
                         apiKey: "AIzaSyBYKTJ-spvowjo2eIjabifizCwSIP29twM",
                         authDomain: "cch5500-45ed9.firebaseapp.com",
@@ -955,46 +1063,104 @@
 
                     if (!firebaseConfig.apiKey) {
                         showAlert('Firebase 設定不正確，因此無法連接到雲端資料庫。', '資料庫連線失敗');
-                        console.error("Firebase config is missing or invalid.");
+                        console.error("[FirebaseInit] FAIL: Firebase config is missing or invalid.");
                         submitBtn.disabled = true; submitBtn.textContent = '資料庫未連接'; submitBtn.classList.add('cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400'); submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                         searchBtn.disabled = true; searchInput.disabled = true; searchInput.placeholder = '資料庫未連接';
                         const adminTabBtn = document.querySelector('button[data-tab="admin"]'); if (adminTabBtn) adminTabBtn.disabled = true;
                         if (statsTabBtn) statsTabBtn.disabled = true;
                          return;
                     }
-
+                    
+                    console.log("[FirebaseInit] Config checked. Initializing app...");
                     const app = initializeApp(firebaseConfig);
+                    console.log("[FirebaseInit] SUCCESS: App initialized.");
+
+                    console.log("[FirebaseInit] Getting Firestore instance...");
                     state.db = getFirestore(app);
+                    console.log("[FirebaseInit] SUCCESS: Firestore instance obtained.");
+
+                    console.log("[FirebaseInit] Getting Auth instance...");
                     state.auth = getAuth(app);
+                    console.log("[FirebaseInit] SUCCESS: Auth instance obtained.");
+                    
                     setLogLevel('debug');
 
                     onAuthStateChanged(state.auth, async (user) => {
                         if (user) {
-                             // The admin check is now local (state.isLoggedIn). 
-                             // This hook only manages the base connection and logs status.
                              if (user.isAnonymous) {
-                                console.log("User is authenticated anonymously (Base Firestore access).");
+                                console.log("[Auth] User is authenticated anonymously (Base Firestore access).");
                              } else {
-                                // If a non-anonymous user (e.g., from old persisted session) is found, ensure local admin state is accurate if we ever switch back.
-                                console.log("User is authenticated via old session. UID:", user.uid);
+                                console.log("[Auth] User is authenticated via old session. UID:", user.uid);
                              }
-                             listenForRequests();
+                             listenForRequests(); 
                              updateUI();
-
                          }
                          else {
-                             console.log("User is not authenticated (signed out).");
-                             state.isLoggedIn = false;
+                             console.log("[Auth] User is not authenticated (signed out).");
+                             state.isLoggedIn = false; 
                              updateUI();
                          }
                     });
 
-                    // Sign in anonymously first to allow Firestore access for general requests/search
-                    await signInAnonymously(state.auth);
+                    console.log("[FirebaseInit] Attempting anonymous sign-in...");
+                    await signInAnonymously(state.auth); 
+                    console.log("[FirebaseInit] SUCCESS: Anonymous sign-in successful (or already signed in).");
+                    
+                    console.log("[FirebaseInit] Initialization complete.");
 
                 } catch (error) {
-                    console.error("Firebase Initialization Error:", error);
+                    console.error("[FirebaseInit] FATAL ERROR during initialization:", error);
                     showAlert('系統初始化失敗，請重新整理頁面。', '嚴重錯誤');
+                }
+            }
+            
+            // --- NEW ITEM SEARCH LOGIC ---
+            function populateDatalist() {
+                const datalist = document.getElementById('item-list');
+                datalist.innerHTML = '';
+                // *** UPDATED: Only add names to datalist ***
+                state.itemDatabase.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.name;
+                    datalist.appendChild(option);
+                });
+                // *** REMOVED: Loop that added item.id to the datalist ***
+            }
+
+            function handleItemSelection() {
+                const value = itemSearchInput.value.trim();
+                // Find by name OR ID (allowing user to type ID)
+                const selectedItem = state.itemDatabase.find(item => item.name === value || (item.id && item.id === value));
+
+                if (value === "其他(自行輸入)") {
+                    otherItemContainer.classList.remove('hidden');
+                    materialIdInput.value = '';
+                    itemUnitInput.value = '';
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
+                    otherItemInput.focus();
+                } else if (selectedItem) {
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
+                    itemSearchInput.value = selectedItem.name; // Ensure name is displayed
+                    materialIdInput.value = selectedItem.id;
+                    itemUnitInput.value = selectedItem.unit;
+                    materialIdInput.disabled = true;
+                    itemUnitInput.disabled = true;
+                    materialIdInput.classList.add('disabled-input');
+                    itemUnitInput.classList.add('disabled-input');
+                } else {
+                    // User is typing a custom value, partial match, or has cleared the field
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
+                    materialIdInput.value = ''; // Clear fields
+                    itemUnitInput.value = '';   // Clear fields
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
                 }
             }
 
@@ -1011,15 +1177,23 @@
             adminSearchInput.addEventListener('input', renderAdminList);
             refreshAdminListBtn.addEventListener('click', () => {
                 const icon = refreshAdminListBtn.querySelector('svg');
-                if (icon) {
-                    icon.classList.add('animate-spin');
+                if (icon) icon.classList.add('animate-spin');
+                renderAdminList(); 
+                setTimeout(() => { if (icon) icon.classList.remove('animate-spin'); }, 700);
+            });
+            
+            // --- UPDATED/NEW Listeners for item search ---
+            itemSearchInput.addEventListener('change', handleItemSelection); // When user selects from dropdown
+            itemSearchInput.addEventListener('input', handleItemSelection);  // As user types
+            
+            // *** NEW: Click listener to allow re-selection ***
+            itemSearchInput.addEventListener('click', () => {
+                // If the input already has a value (i.e., user clicked on a selected item)
+                if (itemSearchInput.value) {
+                    itemSearchInput.value = ''; // Clear it
+                    handleItemSelection(); // Trigger the logic to unlock fields
                 }
-                renderAdminList();
-                 setTimeout(() => {
-                    if (icon) {
-                        icon.classList.remove('animate-spin');
-                    }
-                }, 700);
+                // If it's already empty, this does nothing, allowing default dropdown behavior
             });
 
             form.addEventListener('submit', async (e) => {
@@ -1034,11 +1208,13 @@
                     if (state.editingRequestId) {
                         // Handle admin update
                         const formData = {
-                             dispatchStatus: document.getElementById('process_status').value, // Renamed ID
-                             dispatchMethod: document.getElementById('distribution_method').value, // Renamed ID
-                             driverName: document.getElementById('issuer_name').value, // Renamed ID
-                             driverPhone: document.getElementById('issuer_extension').value, // Renamed ID
-                            adminRemarks: document.getElementById('management_remarks').value, // Renamed ID
+                             dispatchStatus: document.getElementById('process_status').value, 
+                             dispatchMethod: document.getElementById('distribution_method').value, 
+                             // UPDATED: Admin fields
+                             driverName: document.getElementById('issuer_assistant').value, 
+                             driverPhone: document.getElementById('verifying_pharmacist').value, 
+                             applicantSignee: document.getElementById('applicant_signee').value,
+                            adminRemarks: document.getElementById('management_remarks').value, 
                         };
                         const docRef = doc(state.db, 'requests', state.editingRequestId);
                         await updateDoc(docRef, formData);
@@ -1060,29 +1236,30 @@
                         const newSeq = String(querySnapshot.size + 1).padStart(3, '0');
                         const newRequestId = `${datePrefix}-${newSeq}`;
 
-                        // Updated formData fields
+                        // --- FormData Object Rebuilt ---
+                        const itemNameSearch = document.getElementById('item_name_search').value;
+                        const itemNameOther = document.getElementById('item_name_other').value;
+                        const finalItemName = (itemNameSearch === '其他(自行輸入)') ? itemNameOther : itemNameSearch;
+
                         const formData = {
                              requestId: newRequestId,
-                            branch: Array.from(document.querySelectorAll('input[name="branch"]:checked')).map(cb => cb.value),
-                             itemName: document.getElementById('item_name').value, // New field name
-                             itemCategory: document.querySelector('input[name="item_category"]:checked')?.value || null, // New field name
-                             pickupLocation: document.getElementById('pickup_location').value, // New field name
-                             quantity: document.getElementById('quantity').value, // New field name
-                             startTime: document.getElementById('required_start_time').value, // Using old DB name for compatibility
-                             endTime: document.getElementById('required_end_time').value, // Using old DB name for compatibility
+                             itemName: finalItemName,
+                             materialId: document.getElementById('material_id').value,
+                             itemUnit: document.getElementById('item_unit').value,
+                             quantity: document.getElementById('quantity').value,
                              applicantUnit: document.getElementById('applicant_unit').value,
                              costCode: document.getElementById('cost_code').value,
-                             extension: document.getElementById('extension').value,
-                             contactGroup: document.getElementById('contact_group').value,
                              applicantName: applicantName,
+                             submittedApprover: document.getElementById('approving_manager_name').value, 
                              remarks: document.getElementById('remarks').value,
-                             approvingManager: '',
+                             approvingManager: '', // Actual approver, filled by link
                              managerRemarks: '',
-                            dispatchStatus: '待單位主管簽核', // New initial status
-                             dispatchMethod: '', // Using old DB name for compatibility
-                             driverName: '', // Using old DB name for compatibility
-                             driverPhone: '', // Using old DB name for compatibility
-                             adminRemarks: '', // Using old DB name for compatibility
+                            dispatchStatus: '待單位主管簽核', 
+                             dispatchMethod: '', 
+                             driverName: '', // DB field for issuer_assistant
+                             driverPhone: '', // DB field for verifying_pharmacist
+                             applicantSignee: '', // NEW: DB field for applicant_signee
+                             adminRemarks: '', // DB field for managementRemarks
                              createdAt: serverTimestamp()
                          };
 
@@ -1106,13 +1283,16 @@
 
             // --- KICKSTART THE APP ---
             function init() {
-                 handleUrlParams();
+                populateDatalist(); // Populate the datalist on load
+                handleUrlParams();
                 initFirebase();
-                 setActiveTab('apply');
-                 updateUI();
+                setActiveTab('apply');
+                updateUI();
             }
             init();
         });
     </script>
 </body>
 </html>
+
+
