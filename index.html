@@ -397,16 +397,18 @@
                 if (!state.db) return false;
                 const adminDocRef = doc(state.db, 'admins', uid); 
                 
+                console.log(`[AdminCheck] Starting check for UID: ${uid}`); // DEBUG LOG
+                
                 for (let i = 0; i < maxRetries; i++) {
                     try {
                         const docSnap = await getDoc(adminDocRef);
                         // Success: Document found (even if empty, it means the UID exists in the admin list)
                         if (docSnap.exists()) {
-                            console.log(`Admin check succeeded on attempt ${i + 1}.`);
+                            console.log(`[AdminCheck] SUCCESS! UID ${uid} found on attempt ${i + 1}.`); // DEBUG LOG
                             return true;
                         }
                         // Failure on this attempt, but still needs to check propagation delay
-                        console.log(`Admin document not found on attempt ${i + 1}. Retrying...`);
+                        console.log(`[AdminCheck] FAIL: Document not found for UID ${uid} on attempt ${i + 1}. Retrying...`); // DEBUG LOG
                     } catch (error) {
                         // Handle potential network or permission errors
                         console.warn(`Firestore read error on attempt ${i + 1}:`, error.code, error.message);
@@ -462,6 +464,8 @@
                         // 1. Authenticate with Firebase Auth
                         const userCredential = await signInWithEmailAndPassword(state.auth, email, password);
                         const user = userCredential.user;
+                        
+                        console.log(`[LoginSuccess] Authenticated user UID: ${user.uid}`); // DEBUG LOG
                         
                         // 2. Check if the authenticated user has the 'admin' role in Firestore (using robust check)
                         if (await checkAdminRole(user.uid)) {
