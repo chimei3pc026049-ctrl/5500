@@ -279,10 +279,10 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // *** ADD signInWithEmailAndPassword and signOut ***
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // *** ADD getDoc and doc for RBAC ***
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // REMOVED: signInWithEmailAndPassword - Using local auth instead
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // REMOVED: getDoc - Using local auth instead
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         window.addEventListener('load', () => {
             const state = {
@@ -392,44 +392,14 @@
                 confirmBtn.focus();
             }
             
-            // --- NEW FUNCTION: Check if the user's UID is listed as an admin in Firestore ---
-            async function checkAdminRole(uid, maxRetries = 3, delay = 500) {
-                if (!state.db) return false;
-                const adminDocRef = doc(state.db, 'admins', uid); 
-                
-                console.log(`[AdminCheck] Starting check for UID: ${uid}`); // DEBUG LOG
-                
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        const docSnap = await getDoc(adminDocRef);
-                        // Success: Document found (even if empty, it means the UID exists in the admin list)
-                        if (docSnap.exists()) {
-                            console.log(`[AdminCheck] SUCCESS! UID ${uid} found on attempt ${i + 1}.`); // DEBUG LOG
-                            return true;
-                        }
-                        // Failure on this attempt, but still needs to check propagation delay
-                        console.log(`[AdminCheck] FAIL: Document not found for UID ${uid} on attempt ${i + 1}. Retrying...`); // DEBUG LOG
-                    } catch (error) {
-                        // Handle potential network or permission errors
-                        console.warn(`Firestore read error on attempt ${i + 1}:`, error.code, error.message);
-                    }
-
-                    if (i < maxRetries - 1) {
-                        // Wait with exponential backoff before the next retry
-                        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
-                    }
-                }
-                
-                console.log("Admin check failed after all retries.");
-                return false;
-            }
+            // REMOVED checkAdminRole FUNCTION - Using local auth instead
             
             function promptLogin() {
                 modalTitle.textContent = '管理員登入';
                 modalContent.innerHTML = `<div class="space-y-4">
                     <div>
-                        <label for="modal-email" class="block text-sm font-medium text-gray-700 text-left">電子郵件 (Admin Email)</label>
-                        <input type="email" id="modal-email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="modal-username" class="block text-sm font-medium text-gray-700 text-left">帳號 (Admin Username)</label>
+                        <input type="text" id="modal-username" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="modal-password" class="block text-sm font-medium text-gray-700 text-left">密碼 (Password)</label>
@@ -443,62 +413,49 @@
                 
                 const loginBtn = document.getElementById('modal-login-btn'), 
                       cancelBtn = document.getElementById('modal-cancel-btn'), 
-                      emailInput = document.getElementById('modal-email'), // Changed from username
+                      usernameInput = document.getElementById('modal-username'), // Changed from email
                       passwordInput = document.getElementById('modal-password'), 
                       errorEl = document.getElementById('modal-error');
                 
-                emailInput.focus();
+                usernameInput.focus();
                 
                 const handleLogin = async () => {
-                    const email = emailInput.value.trim();
+                    const username = usernameInput.value.trim();
                     const password = passwordInput.value.trim();
                     errorEl.textContent = ''; // Clear previous error
 
-                    if (!email || !password) {
-                        errorEl.textContent = '請輸入電子郵件和密碼。';
+                    // --- Hardcoded Obfuscated Check for admin:cch5500 ---
+                    const P1 = 'cch';
+                    const P2 = '550';
+                    const P3 = '0';
+                    const adminPassword = P1 + P2 + P3;
+                    const adminUsername = 'admin';
+                    // --- End Obfuscation ---
+
+                    if (!username || !password) {
+                        errorEl.textContent = '請輸入帳號和密碼。';
                         const modalBox = modal.querySelector('div'); modalBox.classList.add('animate-shake'); setTimeout(() => { modalBox.classList.remove('animate-shake'); }, 500);
                         return;
                     }
 
-                    try {
-                        // 1. Authenticate with Firebase Auth
-                        const userCredential = await signInWithEmailAndPassword(state.auth, email, password);
-                        const user = userCredential.user;
-                        
-                        console.log(`[LoginSuccess] Authenticated user UID: ${user.uid}`); // DEBUG LOG
-                        
-                        // 2. Check if the authenticated user has the 'admin' role in Firestore (using robust check)
-                        if (await checkAdminRole(user.uid)) {
-                            // Success: User is authenticated and authorized
-                            hideModal();
-                            state.isLoggedIn = true;
-                            showAlert('登入成功！', '管理員登入');
-                            updateUI();
-                            setActiveTab('admin');
-                        } else {
-                            // Failure: Authenticated but not authorized (not in 'admins' collection)
-                            await signOut(state.auth); // Sign out the non-admin user
-                            errorEl.textContent = '此帳號沒有管理員權限。';
-                            const modalBox = modal.querySelector('div'); modalBox.classList.add('animate-shake'); setTimeout(() => { modalBox.classList.remove('animate-shake'); }, 500);
-                        }
 
-                    } catch (error) {
-                        console.error("Firebase Login Error:", error);
-                        // Handle common Firebase Auth errors
-                        let errorMessage = '登入失敗，請稍後再試。';
-                        if (error.code === 'auth/invalid-email' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                            errorMessage = '電子郵件或密碼錯誤。';
-                        } else if (error.code === 'auth/too-many-requests') {
-                            errorMessage = '登入嘗試次數過多，請稍後再試。';
-                        }
-                        errorEl.textContent = errorMessage;
+                    if (username === adminUsername && password === adminPassword) {
+                        // Success: User is authenticated locally
+                        hideModal();
+                        state.isLoggedIn = true;
+                        showAlert('登入成功！', '管理員登入');
+                        updateUI();
+                        setActiveTab('admin');
+                    } else {
+                        // Failure
+                        errorEl.textContent = '帳號或密碼錯誤。';
                         const modalBox = modal.querySelector('div'); modalBox.classList.add('animate-shake'); setTimeout(() => { modalBox.classList.remove('animate-shake'); }, 500);
                     }
                 };
                 
                 loginBtn.onclick = handleLogin;
                 passwordInput.onkeydown = (e) => { if (e.key === 'Enter') handleLogin(); };
-                emailInput.onkeydown = (e) => { if (e.key === 'Enter') passwordInput.focus(); };
+                usernameInput.onkeydown = (e) => { if (e.key === 'Enter') passwordInput.focus(); }; // Changed from emailInput
                 cancelBtn.onclick = hideModal;
             }
 
@@ -574,8 +531,8 @@
 
             // --- AUTHENTICATION & UI ---
             function logout() { 
-                // *** SIGNOUT FIREBASE AUTH USER ***
-                if (state.auth && state.auth.currentUser) {
+                // *** SIGNOUT FIREBASE AUTH USER (cleanup any residual email/password session) ***
+                if (state.auth && state.auth.currentUser && !state.auth.currentUser.isAnonymous) {
                     signOut(state.auth).catch(e => console.error("Error signing out:", e));
                 }
                 state.isLoggedIn = false; 
@@ -1013,24 +970,13 @@
 
                     onAuthStateChanged(state.auth, async (user) => {
                         if (user) {
-                             // Check if the current signed-in user is an admin 
-                             // We assume the user is still signed in anonymously unless they explicitly logged in via promptLogin
+                             // The admin check is now local (state.isLoggedIn). 
+                             // This hook only manages the base connection and logs status.
                              if (user.isAnonymous) {
-                                console.log("User is authenticated anonymously.");
+                                console.log("User is authenticated anonymously (Base Firestore access).");
                              } else {
-                                // A non-anonymous user just logged in (or persisted their session)
-                                console.log("User is authenticated via email/password. UID:", user.uid);
-                                
-                                // Robust check for admin role
-                                if (await checkAdminRole(user.uid)) {
-                                     state.isLoggedIn = true;
-                                     console.log("User authorized as admin.");
-                                } else {
-                                     state.isLoggedIn = false;
-                                     console.log("User is authenticated but NOT an admin.");
-                                     // Ensure non-admin users cannot access admin features right away
-                                     if(state.activeTab === 'admin' || state.activeTab === 'stats') setActiveTab('apply');
-                                }
+                                // If a non-anonymous user (e.g., from old persisted session) is found, ensure local admin state is accurate if we ever switch back.
+                                console.log("User is authenticated via old session. UID:", user.uid);
                              }
                              listenForRequests();
                              updateUI();
