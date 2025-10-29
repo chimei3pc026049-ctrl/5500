@@ -92,7 +92,7 @@
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-4">                
+            <div class="flex items-center gap-4">                      
                 <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain rounded-lg"> 
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院酒精/藥品申請系統</h1>
             </div>
@@ -240,11 +240,11 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-6">查詢申請狀態</h2>
                 <div class="flex items-center space-x-2 mb-6">
                     <!-- ***** MODIFIED: Updated placeholder ***** -->
-                    <input type="text" id="search-input" placeholder="請輸入申請人姓名、申請單號或單位代號進行查詢..." class="flex-grow block w-full px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="search-input" placeholder="請輸入申請人姓名、申請單號或費用部門代號進行查詢..." class="flex-grow block w-full px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <button id="search-btn" class="py-2 px-6 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700">查詢</button>
                 </div>
                 <div id="search-results" class="space-y-4">
-                    <p class="text-center text-gray-500">請輸入姓名、單號或單位代號以查詢您的申請記錄。</p>
+                    <p class="text-center text-gray-500">請輸入姓名、單號或費用部門代號以查詢您的申請記錄。</p>
                 </div>
             </div>
 
@@ -328,9 +328,9 @@
                              <input type="date" id="stats-dispatch-date-filter" class="border-gray-300 rounded-md shadow-sm p-2">
                              <button id="stats-dispatch-generate-btn" class="py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">產生領料單</button>
                          </div>
-                         <!-- ***** NEW: Search Input for Dispatch Tab ***** -->
+                         <!-- ***** MODIFIED: Search Input for Dispatch Tab ***** -->
                          <div class="flex items-center space-x-2">
-                             <input type="text" id="stats-dispatch-search-input" placeholder="依單位代號查詢..." class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                             <input type="text" id="stats-dispatch-search-input" placeholder="依費用部門代號查詢..." class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                          </div>
                     </div>
                     
@@ -837,13 +837,13 @@
 
             function handleSearch() {
                 const query = searchInput.value.trim();
-                if (!query) { searchResults.innerHTML = `<p class="text-center text-gray-500">請輸入姓名、單號或單位代號以查詢您的申請記錄。</p>`; return; }
+                if (!query) { searchResults.innerHTML = `<p class="text-center text-gray-500">請輸入姓名、單號或費用部門代號以查詢您的申請記錄。</p>`; return; }
                 
-                // ***** MODIFIED: Added costCode to filter *****
+                // ***** MODIFIED: Added costCode to filter and updated placeholder text *****
                 const results = state.requests.filter(req =>
                     (req.applicantName && req.applicantName.includes(query)) ||
                     (req.requestId && req.requestId.includes(query)) ||
-                    (req.costCode && req.costCode.includes(query)) // <-- New search condition
+                    (req.costCode && req.costCode.includes(query)) // <-- Use costCode
                 );
                 
                 searchResults.innerHTML = '';
@@ -1030,13 +1030,14 @@
 
             function renderDispatchList() {
                 const selectedDate = statsDispatchDateFilter.value;
-                // ***** NEW: Get search query *****
+                // ***** MODIFIED: Get search query *****
                 const searchQuery = statsDispatchSearchInput.value.trim().toLowerCase();
 
                 if (!selectedDate) {
                     // Don't show alert if just searching, only if generate button clicked without date
                      if (!searchQuery) { // Only show alert if generate is clicked without date
-                         showAlert('請選擇一個領料日期。', '錯誤');
+                         // showAlert('請選擇一個領料日期。', '錯誤'); // Commented out to allow search without date
+                          statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
                      } else {
                          statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
                      }
@@ -1045,35 +1046,33 @@
                 
                 let requestsForDate = state.requests.filter(r => r.dispatchMethod === selectedDate);
                 
-                 // ***** NEW: Filter by search query *****
+                 // ***** MODIFIED: Filter by search query (costCode) *****
                 if (searchQuery) {
-                    requestsForDate = requestsForDate.filter(r => r.applicantUnit?.toLowerCase().includes(searchQuery));
+                    requestsForDate = requestsForDate.filter(r => r.costCode?.toLowerCase().includes(searchQuery));
                 }
 
                 if (requestsForDate.length === 0) {
                      if (searchQuery) {
-                         statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合單位代號 [${searchQuery}] 的領料資料。</p>`;
+                         statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合費用部門代號 [${searchQuery}] 的領料資料。</p>`;
                      } else {
                          statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
                      }
                     return;
                 }
 
-                // Group by unit
+                // Group by unit (applicantUnit is still used for grouping display)
                 const units = new Map();
                 requestsForDate.forEach(req => {
                     const unit = req.applicantUnit || '未分類單位';
-                    // ***** Filtered units already applied *****
-                    // if (searchQuery && !unit.toLowerCase().includes(searchQuery)) {
-                    //     return; // Skip if unit doesn't match search
-                    // }
-
+                    // We already filtered by costCode if searchQuery exists
+                    
                     if (!units.has(unit)) {
                         units.set(unit, { 
                             items: [], 
                             requestIds: [], 
                             signee: '', 
-                            timestamp: null 
+                            timestamp: null,
+                            costCode: req.costCode // Store cost code for display if needed
                         });
                     }
                     const unitData = units.get(unit);
@@ -1098,7 +1097,7 @@
                 statsDispatchResults.innerHTML = ''; // Clear previous results
                 
                 if (units.size === 0 && searchQuery) {
-                     statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合單位代號 [${searchQuery}] 的領料資料。</p>`;
+                     statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合費用部門代號 [${searchQuery}] 的領料資料。</p>`;
                      return;
                  }
 
@@ -1145,8 +1144,11 @@
                     
                     const timestampStr = unitData.timestamp ? `(於 ${unitData.timestamp.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16)} 簽收)` : '';
                     
+                    // Display unit name and cost code if available
+                    const unitTitle = unitData.costCode ? `${unit} (${unitData.costCode})` : unit;
+
                     card.innerHTML = `
-                        <h3 class="text-lg font-bold text-gray-800 border-b pb-2">單位: ${unit}</h3>
+                        <h3 class="text-lg font-bold text-gray-800 border-b pb-2">單位: ${unitTitle}</h3>
                         ${itemsHtml}
                         <div class="mt-4 pt-4 border-t flex flex-col sm:flex-row gap-4 items-center">
                             <label for="signee-${unit}" class="text-sm font-medium text-gray-700 flex-shrink-0">簽收人:</label>
