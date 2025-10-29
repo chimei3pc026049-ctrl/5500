@@ -92,13 +92,8 @@
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-4">        
-                <!-- 
-                    NOTE: The 'logo.png' is a placeholder. 
-                    If you have a specific logo URL, replace 'logo.png' with it.
-                    Otherwise, it will show a broken image icon.
-                -->
-                <img src="https://placehold.co/64x64/003366/FFFFFF?text=CCH" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain rounded-lg"> 
+            <div class="flex items-center gap-4">                
+                <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain rounded-lg"> 
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院酒精/藥品申請系統</h1>
             </div>
         </header>
@@ -327,11 +322,15 @@
                         <h2 class="text-xl font-bold text-gray-800">領料明細簽收</h2>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row justify-start items-center mb-6 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 p-4 bg-gray-50 rounded-lg">
                          <div class="flex items-center gap-2">
                              <label for="stats-dispatch-date-filter" class="text-sm font-medium text-gray-700">選擇領料日期:</label>
                              <input type="date" id="stats-dispatch-date-filter" class="border-gray-300 rounded-md shadow-sm p-2">
                              <button id="stats-dispatch-generate-btn" class="py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">產生領料單</button>
+                         </div>
+                         <!-- ***** NEW: Search Input for Dispatch Tab ***** -->
+                         <div class="flex items-center space-x-2">
+                             <input type="text" id="stats-dispatch-search-input" placeholder="依單位代號查詢..." class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                          </div>
                     </div>
                     
@@ -444,6 +443,8 @@
             const statsDispatchDateFilter = document.getElementById('stats-dispatch-date-filter');
             const statsDispatchGenerateBtn = document.getElementById('stats-dispatch-generate-btn');
             const statsDispatchResults = document.getElementById('stats-dispatch-results');
+            // ***** NEW: Dispatch Search Input *****
+            const statsDispatchSearchInput = document.getElementById('stats-dispatch-search-input');
 
 
             // --- MODAL ELEMENTS & FUNCTIONS ---
@@ -654,8 +655,12 @@
                          statsDispatchDateFilter.value = `${year}-${month}-${day}`;
                      }
                      updateStatsDispatchTabVisibility();
-                     // Do not auto-render, wait for button click
-                     // renderDispatchList(); 
+                     // Re-render if date is already selected, or clear results
+                     if (statsDispatchDateFilter.value) {
+                        renderDispatchList();
+                     } else {
+                         statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請選擇日期以產生領料明細。</p>';
+                     }
                  }
             }
 
@@ -978,7 +983,7 @@
                 });
             }
             
-            // --- ***** NEW: Render Dispatch List Function ***** ---
+            // --- ***** MODIFIED: Render Dispatch List Function ***** ---
             async function handleSaveSignature(event) {
                 const button = event.currentTarget;
                 const unit = button.dataset.unit;
@@ -1009,31 +1014,48 @@
                     
                     await batch.commit();
                     showAlert(`單位 [${unit}] 的簽收已儲存。\n簽收人: ${signeeName}`);
-                    // UI will auto-update from onSnapshot
+                    // UI will auto-update from onSnapshot, re-render triggered in listener
                     
                 } catch (error) {
                     console.error("Error saving signature:", error);
                     showAlert('儲存簽收失敗，請稍後再試。', '錯誤');
-                } finally {
-                     // The button might be gone after re-render, but this is a fallback
-                    if (button) {
+                     // Enable button on error
+                     if (button) {
                         button.disabled = false;
                         button.textContent = '儲存簽收';
                     }
-                }
+                } 
+                // Don't disable button finally, rely on re-render or error handling
             }
 
             function renderDispatchList() {
                 const selectedDate = statsDispatchDateFilter.value;
+                // ***** NEW: Get search query *****
+                const searchQuery = statsDispatchSearchInput.value.trim().toLowerCase();
+
                 if (!selectedDate) {
-                    showAlert('請選擇一個領料日期。', '錯誤');
+                    // Don't show alert if just searching, only if generate button clicked without date
+                     if (!searchQuery) { // Only show alert if generate is clicked without date
+                         showAlert('請選擇一個領料日期。', '錯誤');
+                     } else {
+                         statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
+                     }
                     return;
                 }
                 
-                const requestsForDate = state.requests.filter(r => r.dispatchMethod === selectedDate);
+                let requestsForDate = state.requests.filter(r => r.dispatchMethod === selectedDate);
                 
+                 // ***** NEW: Filter by search query *****
+                if (searchQuery) {
+                    requestsForDate = requestsForDate.filter(r => r.applicantUnit?.toLowerCase().includes(searchQuery));
+                }
+
                 if (requestsForDate.length === 0) {
-                    statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
+                     if (searchQuery) {
+                         statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合單位代號 [${searchQuery}] 的領料資料。</p>`;
+                     } else {
+                         statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
+                     }
                     return;
                 }
 
@@ -1041,6 +1063,11 @@
                 const units = new Map();
                 requestsForDate.forEach(req => {
                     const unit = req.applicantUnit || '未分類單位';
+                    // ***** Filtered units already applied *****
+                    // if (searchQuery && !unit.toLowerCase().includes(searchQuery)) {
+                    //     return; // Skip if unit doesn't match search
+                    // }
+
                     if (!units.has(unit)) {
                         units.set(unit, { 
                             items: [], 
@@ -1070,6 +1097,11 @@
                 
                 statsDispatchResults.innerHTML = ''; // Clear previous results
                 
+                if (units.size === 0 && searchQuery) {
+                     statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合單位代號 [${searchQuery}] 的領料資料。</p>`;
+                     return;
+                 }
+
                 // Aggregate items within each unit
                 units.forEach((unitData, unit) => {
                     const aggregatedItems = new Map();
@@ -1338,8 +1370,8 @@
                     if(state.activeTab === 'stats' && state.isLoggedIn) { renderStatistics(); }
                     // ***** NEW: Re-render dispatch list if it's the active tab *****
                     if(state.activeTab === 'stats-dispatch' && state.isLoggedIn) { 
-                        // Only re-render if a date is selected
-                        if (statsDispatchDateFilter.value) {
+                        // Only re-render if a date is selected and list has been generated
+                        if (statsDispatchDateFilter.value && statsDispatchResults.innerHTML !== '<p class="text-center text-gray-500">請選擇日期以產生領料明細。</p>') {
                             renderDispatchList(); 
                         }
                     }
@@ -1669,6 +1701,8 @@
             // ***** NEW: Stats Dispatch listeners *****
             statsDispatchLoginPromptBtn.addEventListener('click', promptLogin);
             statsDispatchGenerateBtn.addEventListener('click', renderDispatchList);
+            // ***** NEW: Listener for dispatch search *****
+            statsDispatchSearchInput.addEventListener('input', renderDispatchList);
 
 
             form.addEventListener('submit', async (e) => {
@@ -1832,3 +1866,4 @@
     </script>
 </body>
 </html>
+
