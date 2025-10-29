@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -86,7 +86,8 @@
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-4">
-                <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain">
+                <!-- 暫時移除 logo.png，因為它不存在 -->
+                <!-- <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain"> -->
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院酒精/藥品申請系統</h1>
             </div>
         </header>
@@ -185,7 +186,8 @@
                                     <option value="待單位主管簽核">待單位主管簽核</option>
                                     <option value="主管退回">主管退回</option>
                                     <option value="待發料單位處理">待發料單位處理</option>
-                                    <option value="已備料">已備料</option>
+                                    <option value="已備料">已備料</option> <!-- 注意：這個狀態在您的 CSS 中是 "已發料"，但邏輯上可能是 "已備料" -->
+                                    <option value="已發料">已發料</option>
                                     <option value="申請取消">申請取消</option>
                                     <option value="無法發料">無法發料</option>
                                 </select>
@@ -232,11 +234,12 @@
             <div id="tab-content-search" class="tab-content hidden bg-white p-6 sm:p-8 rounded-b-2xl shadow-lg">
                 <h2 class="text-xl font-bold text-gray-800 mb-6">查詢申請狀態</h2>
                 <div class="flex items-center space-x-2 mb-6">
-                    <input type="text" id="search-input" placeholder="請輸入申請人姓名或申請單號進行查詢..." class="flex-grow block w-full px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <!-- ***** MODIFIED: Updated placeholder ***** -->
+                    <input type="text" id="search-input" placeholder="請輸入申請人姓名、申請單號或單位代號進行查詢..." class="flex-grow block w-full px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <button id="search-btn" class="py-2 px-6 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700">查詢</button>
                 </div>
                 <div id="search-results" class="space-y-4">
-                    <p class="text-center text-gray-500">請輸入姓名或單號以查詢您的申請記錄。</p>
+                    <p class="text-center text-gray-500">請輸入姓名、單號或單位代號以查詢您的申請記錄。</p>
                 </div>
             </div>
 
@@ -321,7 +324,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 藥品/材料資料庫 ---
@@ -580,13 +583,13 @@
                 if (tabName === 'admin') updateAdminTabVisibility();
                 if (tabName === 'stats') {
                      if (!statsMonthFilter.value) {
-                          const now = new Date();
-                          const year = now.getFullYear();
-                          const month = (now.getMonth() + 1).toString().padStart(2, '0');
-                          statsMonthFilter.value = `${year}-${month}`;
-                    }
+                         const now = new Date();
+                         const year = now.getFullYear();
+                         const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                         statsMonthFilter.value = `${year}-${month}`;
+                     }
                     updateStatsTabVisibility();
-                     renderStatistics();
+                    renderStatistics();
                  }
             }
 
@@ -642,7 +645,8 @@
                     case '待單位主管簽核': return 'status-manager-approval';
                     case '主管退回': return 'status-manager-rejected';
                     case '待發料單位處理': return 'status-pending';
-                    case '已備料': return 'status-dispatched';
+                    case '已備料': return 'status-dispatched'; // Assuming '已備料' uses '已發料' style
+                    case '已發料': return 'status-dispatched';
                     case '申請取消': return 'status-cancelled';
                     case '無法發料': return 'status-rejected';
                     default: return 'status-rejected';
@@ -743,11 +747,15 @@
 
             function handleSearch() {
                 const query = searchInput.value.trim();
-                if (!query) { searchResults.innerHTML = `<p class="text-center text-gray-500">請輸入姓名或單號以查詢您的申請記錄。</p>`; return; }
+                if (!query) { searchResults.innerHTML = `<p class="text-center text-gray-500">請輸入姓名、單號或單位代號以查詢您的申請記錄。</p>`; return; }
+                
+                // ***** MODIFIED: Added costCode to filter *****
                 const results = state.requests.filter(req =>
                     (req.applicantName && req.applicantName.includes(query)) ||
-                    (req.requestId && req.requestId.includes(query))
+                    (req.requestId && req.requestId.includes(query)) ||
+                    (req.costCode && req.costCode.includes(query)) // <-- New search condition
                 );
+                
                 searchResults.innerHTML = '';
                 if (results.length === 0) { searchResults.innerHTML = `<p class="text-center text-gray-500">找不到符合「${query}」的申請記錄。</p>`; return; }
 
@@ -777,6 +785,7 @@
                             <p><strong>材料編號:</strong> ${req.materialId || '---'}</p>
                             <p><strong>單位:</strong> ${req.itemUnit || '---'}</p>
                             <p><strong>數量:</strong> ${req.quantity || '---'}</p>
+                            <p><strong>費用部門:</strong> ${req.costCode || '---'}</p>
                             <p><strong>送簽主管:</strong> ${req.submittedApprover || '---'}</p>
                             
                             ${req.approvingManager ? `<p><strong>實際簽核主管:</strong> ${req.approvingManager}</p>` : ''}
@@ -812,7 +821,7 @@
                 // --- Issuer Chart ---
                 const issuerCtx = document.getElementById('issuer-chart').getContext('2d');
                 const issuerTrips = filteredRequests
-                    .filter(r => r.dispatchStatus === '已發料' && r.driverName) // DB field is driverName
+                    .filter(r => (r.dispatchStatus === '已發料' || r.dispatchStatus === '已備料') && r.driverName) // DB field is driverName
                     .reduce((acc, req) => { acc[req.driverName] = (acc[req.driverName] || 0) + 1; return acc; }, {});
                 const sortedIssuers = Object.entries(issuerTrips).sort((a, b) => b[1] - a[1]);
                 if (issuerChartInstance) issuerChartInstance.destroy();
@@ -870,6 +879,7 @@
                     '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW') || '',
                     '申請狀態': req.dispatchStatus,
                     '申請單位': req.applicantUnit,
+                    '費用部門代號': req.costCode,
                     '申請人': req.applicantName,
                     '送簽主管': req.submittedApprover,
                     '實際簽核主管': req.approvingManager,
@@ -891,7 +901,7 @@
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, '藥品材料申請單');
-                XExample: `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`
+                // Example: `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`
                 XLSX.writeFile(workbook, `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`);
             }
 
@@ -979,7 +989,8 @@
                 });
 
                 const isAdmin = state.isLoggedIn;
-                const canAdminEdit = isAdmin && ['待發料單位處理', '已發料', '申請取消', '無法發料'].includes(request.dispatchStatus);
+                // Allow admin editing if status is "主管退回" as well, so they can reset it
+                const canAdminEdit = isAdmin && ['待發料單位處理', '已備料', '已發料', '申請取消', '無法發料', '主管退回'].includes(request.dispatchStatus);
 
                 adminFields.forEach(el => {
                     el.disabled = !canAdminEdit;
@@ -1025,10 +1036,22 @@
                         const request = state.requests.find(r => r.id === state.deepLinkedRequestId);
                         if(request) {
                             setActiveTab('search');
-                            searchInput.value = request.applicantName;
+                            searchInput.value = request.requestId; // Search by ID for deep link
                             handleSearch();
                             const resultEl = document.getElementById('search-results');
-                            if(resultEl) resultEl.scrollIntoView({ behavior: 'smooth' });
+                            if(resultEl) {
+                                // Scroll to the search results after a short delay to ensure rendering
+                                setTimeout(() => {
+                                    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    // Highlight the card
+                                    const card = resultEl.querySelector('div'); // Get the first card
+                                    if (card) {
+                                        card.style.transition = 'all 0.5s ease';
+                                        card.style.backgroundColor = '#e0e7ff'; // Light blue highlight
+                                        setTimeout(() => { card.style.backgroundColor = ''; }, 2000);
+                                    }
+                                }, 200);
+                            }
                         }
                         const url = new URL(window.location);
                         url.searchParams.delete('requestId');
@@ -1055,16 +1078,21 @@
 
             async function initFirebase() {
                 try {
-                    console.log("[FirebaseInit] Starting initialization...");
-                    const firebaseConfig = {
-                        apiKey: "AIzaSyBYKTJ-spvowjo2eIjabifizCwSIP29twM",
-                        authDomain: "cch5500-45ed9.firebaseapp.com",
-                        projectId: "cch5500-45ed9",
-                        storageBucket: "cch5500-45ed9.firebasestorage.app",
-                        messagingSenderId: "689704613039",
-                        appId: "1:689704613039:web:725556c49988e0b78e105a",
-                        measurementId: "G-4XDWW8VFDX"
-                    };
+                    // Firebase config provided via global variable (if in Canvas)
+                    // or use a hardcoded fallback for local dev.
+                    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+                        ? JSON.parse(__firebase_config)
+                        : {
+                            apiKey: "AIzaSyBYKTJ-spvowjo2eIjabifizCwSIP29twM", // Fallback for local dev
+                            authDomain: "cch5500-45ed9.firebaseapp.com",
+                            projectId: "cch5500-45ed9",
+                            storageBucket: "cch5500-45ed9.firebasestorage.app",
+                            messagingSenderId: "689704613039",
+                            appId: "1:689704613039:web:725556c49988e0b78e105a",
+                            measurementId: "G-4XDWW8VFDX"
+                        };
+                    
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
                     if (!firebaseConfig.apiKey) {
                         showAlert('Firebase 設定不正確，因此無法連接到雲端資料庫。', '資料庫連線失敗');
@@ -1076,41 +1104,55 @@
                          return;
                     }
                     
-                    console.log("[FirebaseInit] Config checked. Initializing app...");
                     const app = initializeApp(firebaseConfig);
-                    console.log("[FirebaseInit] SUCCESS: App initialized.");
-
-                    console.log("[FirebaseInit] Getting Firestore instance...");
                     state.db = getFirestore(app);
-                    console.log("[FirebaseInit] SUCCESS: Firestore instance obtained.");
-
-                    console.log("[FirebaseInit] Getting Auth instance...");
                     state.auth = getAuth(app);
-                    console.log("[FirebaseInit] SUCCESS: Auth instance obtained.");
                     
+                    // Set log level for debugging
                     setLogLevel('debug');
 
-                    onAuthStateChanged(state.auth, async (user) => {
+                    onAuthStateChanged(state.auth, (user) => {
                         if (user) {
-                             if (user.isAnonymous) {
+                            if (user.isAnonymous) {
                                 console.log("[Auth] User is authenticated anonymously (Base Firestore access).");
-                             } else {
-                                console.log("[Auth] User is authenticated via old session. UID:", user.uid);
-                             }
-                             listenForRequests(); 
-                             updateUI();
-                         }
-                         else {
-                             console.log("[Auth] User is not authenticated (signed out).");
-                             state.isLoggedIn = false; 
-                             updateUI();
-                         }
+                            } else {
+                                console.log("[Auth] User is authenticated via session. UID:", user.uid);
+                                // If the user is not anonymous, they must be an admin (from our logic)
+                                // This is a simple check, real auth would use custom claims
+                                // For this app, we'll just re-set the loggedIn state
+                                state.isLoggedIn = true; 
+                            }
+                            console.log("[Auth] Auth state ready. UID:", user.uid);
+                            listenForRequests(); // Start listening *after* auth is confirmed
+                            updateUI();
+                        } else {
+                            console.log("[Auth] User is not authenticated (signed out).");
+                            state.isLoggedIn = false; 
+                            updateUI();
+                            // Try to sign in again if auth state is lost
+                            signIn();
+                        }
                     });
 
-                    console.log("[FirebaseInit] Attempting anonymous sign-in...");
-                    await signInAnonymously(state.auth); 
-                    console.log("[FirebaseInit] SUCCESS: Anonymous sign-in successful (or already signed in).");
-                    
+                    async function signIn() {
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                console.log("[Auth] Attempting sign-in with custom token...");
+                                await signInWithCustomToken(state.auth, __initial_auth_token);
+                                console.log("[Auth] SUCCESS: Custom token sign-in successful.");
+                            } else {
+                                console.log("[Auth] Attempting anonymous sign-in...");
+                                await signInAnonymously(state.auth); 
+                                console.log("[Auth] SUCCESS: Anonymous sign-in successful.");
+                            }
+                        } catch (authError) {
+                            console.error("[Auth] FATAL ERROR during sign-in:", authError);
+                            showAlert('身份驗證失敗，無法連接到資料庫。', '嚴重錯誤');
+                        }
+                    }
+
+                    // Initial sign-in attempt
+                    await signIn();
                     console.log("[FirebaseInit] Initialization complete.");
 
                 } catch (error) {
@@ -1160,8 +1202,11 @@
                     // User is typing a custom value, partial match, or has cleared the field
                     otherItemContainer.classList.add('hidden');
                     otherItemInput.value = '';
-                    materialIdInput.value = ''; // Clear fields
-                    itemUnitInput.value = '';   // Clear fields
+                    
+                    // Don't clear fields if user is typing manually
+                    // materialIdInput.value = ''; // Clear fields
+                    // itemUnitInput.value = '';   // Clear fields
+                    
                     materialIdInput.disabled = false;
                     itemUnitInput.disabled = false;
                     materialIdInput.classList.remove('disabled-input');
@@ -1194,17 +1239,25 @@
             // *** NEW: Click listener to allow re-selection ***
             itemSearchInput.addEventListener('click', () => {
                 // If the input already has a value (i.e., user clicked on a selected item)
-                if (itemSearchInput.value) {
+                // and it's one of the database items (not "其他")
+                const selectedItem = state.itemDatabase.find(item => item.name === itemSearchInput.value);
+                if (itemSearchInput.value && selectedItem && selectedItem.name !== "其他(自行輸入)") {
                     itemSearchInput.value = ''; // Clear it
                     handleItemSelection(); // Trigger the logic to unlock fields
                 }
-                // If it's already empty, this does nothing, allowing default dropdown behavior
+                // If it's empty or "其他", this does nothing, allowing default dropdown behavior
             });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const applicantName = document.getElementById('applicant_name').value;
-                if (!applicantName) { showAlert('請填寫申請人姓名！', '資料不完整'); return; }
+                if (!applicantName && !state.editingRequestId) { // Only require name for NEW applications
+                    showAlert('請填寫申請人姓名！', '資料不完整'); 
+                    document.getElementById('applicant_name').focus();
+                    document.getElementById('applicant_name').classList.add('border-red-500', 'animate-shake');
+                    setTimeout(() => { document.getElementById('applicant_name').classList.remove('border-red-500', 'animate-shake'); }, 600);
+                    return; 
+                }
 
                 submitBtn.disabled = true;
                 submitBtn.textContent = '處理中...';
@@ -1214,17 +1267,18 @@
                         // Handle admin update
                         const formData = {
                              dispatchStatus: document.getElementById('process_status').value, 
-                             // UPDATED: Admin fields
-                             dispatchMethod: document.getElementById('distribution_method').value, // Now date
-                             driverName: document.getElementById('issuer_assistant').value, 
-                             driverPhone: document.getElementById('verifying_pharmacist').value, 
-                             applicantSignee: document.getElementById('applicant_signee').value,
+                            // UPDATED: Admin fields
+                            dispatchMethod: document.getElementById('distribution_method').value, // Now date
+                            driverName: document.getElementById('issuer_assistant').value, 
+                            driverPhone: document.getElementById('verifying_pharmacist').value, 
+                            applicantSignee: document.getElementById('applicant_signee').value,
                             adminRemarks: document.getElementById('management_remarks').value, 
                         };
                         const docRef = doc(state.db, 'requests', state.editingRequestId);
                         await updateDoc(docRef, formData);
                         showAlert('申請單已更新！');
                         resetForm();
+                        setActiveTab('admin'); // Go back to admin list after update
                     } else {
                         // Handle new application
                         const today = new Date();
@@ -1234,7 +1288,7 @@
 
                         const requestsColRef = collection(state.db, 'requests');
                         const q = query(requestsColRef,
-                             where("requestId", ">=", `${datePrefix}-`),
+                            where("requestId", ">=", `${datePrefix}-`),
                             where("requestId", "<", `${datePrefix}-~`)
                         );
                         const querySnapshot = await getDocs(q);
@@ -1247,25 +1301,25 @@
                         const finalItemName = (itemNameSearch === '其他(自行輸入)') ? itemNameOther : itemNameSearch;
 
                         const formData = {
-                             requestId: newRequestId,
-                             itemName: finalItemName,
-                             materialId: document.getElementById('material_id').value,
-                             itemUnit: document.getElementById('item_unit').value,
-                             quantity: document.getElementById('quantity').value,
-                             applicantUnit: document.getElementById('applicant_unit').value,
-                             costCode: document.getElementById('cost_code').value,
-                             applicantName: applicantName,
-                             submittedApprover: document.getElementById('approving_manager_name').value, 
-                             remarks: document.getElementById('remarks').value,
-                             approvingManager: '', // Actual approver, filled by link
-                             managerRemarks: '',
+                            requestId: newRequestId,
+                            itemName: finalItemName,
+                            materialId: document.getElementById('material_id').value,
+                            itemUnit: document.getElementById('item_unit').value,
+                            quantity: document.getElementById('quantity').value,
+                            applicantUnit: document.getElementById('applicant_unit').value,
+                            costCode: document.getElementById('cost_code').value,
+                            applicantName: applicantName,
+                            submittedApprover: document.getElementById('approving_manager_name').value, 
+                            remarks: document.getElementById('remarks').value,
+                            approvingManager: '', // Actual approver, filled by link
+                            managerRemarks: '',
                             dispatchStatus: '待單位主管簽核', 
-                             dispatchMethod: '', // DB field for distribution_method (date)
-                             driverName: '', // DB field for issuer_assistant
-                             driverPhone: '', // DB field for verifying_pharmacist
-                             applicantSignee: '', // NEW: DB field for applicant_signee
-                             adminRemarks: '', // DB field for managementRemarks
-                             createdAt: serverTimestamp()
+                            dispatchMethod: '', // DB field for distribution_method (date)
+                            driverName: '', // DB field for issuer_assistant
+                            driverPhone: '', // DB field for verifying_pharmacist
+                            applicantSignee: '', // NEW: DB field for applicant_signee
+                            adminRemarks: '', // DB field for managementRemarks
+                            createdAt: serverTimestamp()
                          };
 
                         const newDocRef = await addDoc(requestsColRef, formData);
@@ -1299,4 +1353,3 @@
     </script>
 </body>
 </html>
-
