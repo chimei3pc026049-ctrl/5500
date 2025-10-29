@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -79,14 +79,21 @@
             overflow-y: auto;
             z-index: 99;
         }
+        /* For item rows */
+        .item-row {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-4">
-                <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain">
+            <div class="flex items-center gap-4">         
+                <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain"> 
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院酒精/藥品申請系統</h1>
             </div>
         </header>
@@ -108,10 +115,10 @@
                 <form id="dispatchForm" class="space-y-6">
                     <input type="hidden" id="request-id">
                     
-                    <!-- Form Fields Grid - COMPLETELY REBUILT -->
+                    <!-- Form Fields Grid - MODIFIED for multi-item -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 border-t border-b border-gray-200 py-6">
                         
-                        <!-- Row 1 -->
+                        <!-- Row 1 (Basic Info) -->
                         <div>
                             <label for="applicant_unit" class="block text-sm font-medium text-gray-700">申請單位</label>
                             <input type="text" id="applicant_unit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -125,51 +132,48 @@
                             <input type="text" id="applicant_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="請輸入姓名">
                         </div>
 
-                        <!-- Row 2: Dynamic Item Search -->
-                        <div>
-                            <label for="item_name_search" class="block text-sm font-medium text-gray-700">申請藥品 (搜尋品名或編號)</label>
-                            <input type="text" id="item_name_search" list="item-list" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" autocomplete="off">
-                            <datalist id="item-list"></datalist>
-                        </div>
-                        <div id="item_name_other_container" class="hidden">
-                            <label for="item_name_other" class="block text-sm font-medium text-gray-700">品名 (其他)</label>
-                            <input type="text" id="item_name_other" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="material_id" class="block text-sm font-medium text-gray-700">材料編號</label>
-                            <input type="text" id="material_id" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        
-                        <!-- Row 3 -->
-                        <div>
-                            <label for="item_unit" class="block text-sm font-medium text-gray-700">單位</label>
-                            <input type="text" id="item_unit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="quantity" class="block text-sm font-medium text-gray-700">數量</label>
-                            <input type="text" id="quantity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="例如: 10">
-                        </div>
+                        <!-- Row 2 (Manager) -->
                         <div>
                             <label for="approving_manager_name" class="block text-sm font-medium text-gray-700">單位主管簽核</label>
                             <input type="text" id="approving_manager_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="請輸入主管姓名">
                         </div>
-                        <!-- Row 4: Remarks -->
-                        <div class="lg:col-span-3">
-                            <label for="remarks" class="block text-sm font-medium text-gray-700">備註</label>
-                            <textarea id="remarks" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="若有特殊需求請在此說明..."></textarea>
-                        </div>
+                        <!-- Spacer -->
+                        <div class="hidden lg:block lg:col-span-2"></div>
+                    </div>
 
-                        <!-- Info Box -->
-                        <div class="lg:col-span-3">
-                            <p class="block text-sm font-medium text-red-600 mb-1">領料補充說明：</p>
-                            <!-- UPDATED INFO BOX CONTENT -->
-                            <div class="mt-1 block w-full px-3 py-2 bg-red-50 border-2 border-red-300 rounded-md shadow-sm text-sm text-red-800 font-semibold space-y-1">
-                                <p>þ 申請酒精/藥品的結單時間：每周三中午12:00止</p>
-                                <p>þ 領取申請酒精/藥品的地點時間：B1藥庫每周四下午13:00~16:00止</p>
-                                <p>þ 如遇國定假日或春節連假，將另行公告提早領物資的日期。</p>
-                            </div>
+                    <!-- ***** NEW: Multi-Item Section ***** -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-t pt-6">
+                             <h3 class="text-lg font-medium text-gray-800">申請品項</h3>
+                             <button type="button" id="add-item-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                ＋ 新增品項
+                             </button>
+                        </div>
+                       
+                        <div id="item-list-container" class="space-y-6">
+                            <!-- Item rows will be injected here by JavaScript -->
                         </div>
                     </div>
+                    <!-- ***** END: Multi-Item Section ***** -->
+
+
+                    <!-- Row 4: Remarks (Now after item list) -->
+                    <div class="lg:col-span-3 border-t pt-6">
+                        <label for="remarks" class="block text-sm font-medium text-gray-700">備註</label>
+                        <textarea id="remarks" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="若有特殊需求請在此說明..."></textarea>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="lg:col-span-3">
+                        <p class="block text-sm font-medium text-red-600 mb-1">領料補充說明：</p>
+                        <!-- UPDATED INFO BOX CONTENT -->
+                        <div class="mt-1 block w-full px-3 py-2 bg-red-50 border-2 border-red-300 rounded-md shadow-sm text-sm text-red-800 font-semibold space-y-1">
+                            <p>þ 申請酒精/藥品的結單時間：每周三中午12:00止</p>
+                            <p>þ 領取申請酒精/藥品的地點時間：B1藥庫每周四下午13:00~16:00止</p>
+                            <p>þ 如遇國定假日或春節連假，將另行公告提早領物資的日期。</p>
+                        </div>
+                    </div>
+
 
                     <!-- Admin Section (Unchanged, only IDs updated) -->
                     <div id="admin-section" class="hidden border-t border-gray-200 pt-6 mt-6">
@@ -353,7 +357,10 @@
                 db: null, // Firestore instance
                 auth: null, // Auth instance
                 deepLinkedRequestId: null,
-                itemDatabase: itemDatabase // Store database in state
+                itemDatabase: itemDatabase, // Store database in state
+                appId: null, // ***** NEW: To store app ID *****
+                collectionPath: null, // ***** NEW: To store collection path *****
+                itemRowCounter: 0 // ***** NEW: Counter for unique item row IDs *****
             };
 
             let statusChartInstance, itemChartInstance, issuerChartInstance;
@@ -391,12 +398,10 @@
             const statsMonthFilter = document.getElementById('stats-month-filter');
             const statsTotalRequests = document.getElementById('stats-total-requests');
             
-            // --- NEW FORM FIELD ELEMENTS ---
-            const itemSearchInput = document.getElementById('item_name_search');
-            const materialIdInput = document.getElementById('material_id');
-            const itemUnitInput = document.getElementById('item_unit');
-            const otherItemContainer = document.getElementById('item_name_other_container');
-            const otherItemInput = document.getElementById('item_name_other');
+            // --- ***** NEW: MULTI-ITEM ELEMENTS ***** ---
+            const addItemBtn = document.getElementById('add-item-btn');
+            const itemListContainer = document.getElementById('item-list-container');
+
 
             // --- MODAL ELEMENTS & FUNCTIONS ---
             const modal = document.getElementById('custom-modal');
@@ -669,10 +674,10 @@
 
             // --- RENDER FUNCTIONS ---
             async function handleManagerAction(id) {
-                if (!id || !state.db) return;
+                if (!id || !state.db || !state.collectionPath) return; // ***** MODIFIED: Check for collectionPath
                 promptManagerAction(async (action) => {
                     if (action) {
-                         const docRef = doc(state.db, 'requests', id);
+                         const docRef = doc(state.db, state.collectionPath, id); // ***** MODIFIED: Use collectionPath
                         try {
                             if (action.approved) {
                                 await updateDoc(docRef, {
@@ -721,11 +726,20 @@
                     buttonsHTML += `<button class="text-sm text-blue-600 hover:text-blue-800 font-medium edit-btn">檢視/編輯</button>`;
                     buttonsHTML += `<button class="text-sm text-red-600 hover:text-red-800 font-medium delete-btn">刪除</button>`;
 
+                    // ***** MODIFIED: Create item summary *****
+                    let itemSummary = '無品項資訊';
+                    if (req.items && req.items.length > 0) {
+                        itemSummary = `${req.items[0].itemName} (數量: ${req.items[0].quantity})`;
+                        if (req.items.length > 1) {
+                            itemSummary += ` ...等 ${req.items.length} 項`;
+                        }
+                    }
+
                     card.innerHTML = `<div class="flex-grow">
                         <p class="font-semibold text-gray-800">${req.applicantUnit || 'N/A'} - ${req.applicantName || 'N/A'}</p>
                         <p class="text-xs text-gray-400">單號: ${req.requestId || 'N/A'}</p>
                         <p class="text-sm text-gray-500">申請時間: ${createdAt}</p>
-                        <p class="text-sm text-gray-700 font-medium">品項: ${req.itemName || 'N/A'} (數量: ${req.quantity || 'N/A'})</p>
+                        <p class="text-sm text-gray-700 font-medium">品項: ${itemSummary}</p>
                     </div><div class="flex items-center flex-shrink-0 gap-4">${buttonsHTML} <span class="status-badge ${getStatusBadgeClass(req.dispatchStatus)}">${req.dispatchStatus}</span></div>`;
 
                     const approveBtn = card.querySelector('.approve-btn');
@@ -770,6 +784,18 @@
                         managerActionsHTML = `<div class="mt-2 pt-2 border-t"><button class="w-full text-center py-2 px-4 bg-green-100 text-green-800 rounded-md hover:bg-green-200 approve-btn-search">主管簽核</button></div>`;
                     }
 
+                    // ***** MODIFIED: Create items list HTML *****
+                    let itemsHtml = '<p class="sm:col-span-2"><strong>申請品項:</strong></p><ul class="sm:col-span-2 list-disc pl-8 space-y-1 text-sm">';
+                    if (req.items && req.items.length > 0) {
+                        req.items.forEach(item => {
+                            itemsHtml += `<li>${item.itemName || 'N/A'} (編號: ${item.materialId || 'N/A'}) - 數量: ${item.quantity || 'N/A'} ${item.itemUnit || ''}</li>`;
+                        });
+                    } else {
+                        itemsHtml += '<li>無品項資訊</li>';
+                    }
+                    itemsHtml += '</ul>';
+
+
                     // --- Search Card Rebuilt ---
                     card.innerHTML = `
                         <div class="flex justify-between items-center">
@@ -780,10 +806,9 @@
                         <div class="text-sm text-gray-600 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                             <p><strong>申請時間:</strong> ${createdAt}</p>
                             <p><strong>申請人:</strong> ${req.applicantName || '---'}</p>
-                            <p class="sm:col-span-2"><strong>品項名稱:</strong> ${req.itemName || '---'}</p>
-                            <p><strong>材料編號:</strong> ${req.materialId || '---'}</p>
-                            <p><strong>單位:</strong> ${req.itemUnit || '---'}</p>
-                            <p><strong>數量:</strong> ${req.quantity || '---'}</p>
+                            
+                            <!-- ***** MODIFIED: Removed old single item fields ***** -->
+                            
                             <p><strong>費用部門:</strong> ${req.costCode || '---'}</p>
                             <p><strong>送簽主管:</strong> ${req.submittedApprover || '---'}</p>
                             
@@ -800,6 +825,9 @@
                             
                             <p class="sm:col-span-2"><strong>申請備註:</strong> ${req.remarks || '---'}</p>
                             ${req.adminRemarks ? `<p class="sm:col-span-2"><strong>發料單位備註:</strong> ${req.adminRemarks}</p>` : ''}
+
+                            <!-- ***** NEW: Added items list ***** -->
+                            ${itemsHtml}
                         </div>
                         ${managerActionsHTML}`;
                     searchResults.appendChild(card);
@@ -838,15 +866,20 @@
                     options: { responsive: true, maintainAspectRatio: true }
                 });
 
-                // --- Item Chart (New) ---
+                // --- Item Chart (MODIFIED) ---
                 const itemCtx = document.getElementById('item-chart').getContext('2d');
-                const itemCounts = filteredRequests
-                    .filter(r => r.itemName) // Ensure item name exists
-                    .reduce((acc, req) => { 
-                        const name = req.itemName.split(' (')[0]; // Simplify name
-                        acc[name] = (acc[name] || 0) + 1; 
-                        return acc; 
-                    }, {});
+                // ***** MODIFIED: Loop through items array *****
+                const itemCounts = filteredRequests.reduce((acc, req) => { 
+                    if (req.items && Array.isArray(req.items)) {
+                        req.items.forEach(item => {
+                            if (item.itemName) {
+                                const name = item.itemName.split(' (')[0]; // Simplify name
+                                acc[name] = (acc[name] || 0) + 1; // Count instances
+                            }
+                        });
+                    }
+                    return acc; 
+                }, {});
                 const sortedItems = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 10); // Top 10
                 if(itemChartInstance) itemChartInstance.destroy();
                 itemChartInstance = new Chart(itemCtx, {
@@ -869,34 +902,52 @@
                 });
             }
 
-            // --- EXCEL EXPORT ---
+            // --- EXCEL EXPORT (MODIFIED) ---
             function exportToExcel() {
                 const filteredRequests = getFilteredRequests();
-                // --- Columns Rebuilt ---
-                const dataToExport = filteredRequests.map(req => ({
-                    '申請單號': req.requestId,
-                    '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW') || '',
-                    '申請狀態': req.dispatchStatus,
-                    '申請單位': req.applicantUnit,
-                    '費用部門代號': req.costCode,
-                    '申請人': req.applicantName,
-                    '送簽主管': req.submittedApprover,
-                    '實際簽核主管': req.approvingManager,
-                    '主管備註': req.managerRemarks,
-                    '領料品項名稱': req.itemName,
-                    '材料編號': req.materialId,
-                    '單位': req.itemUnit,
-                    '數量': req.quantity,
-                    // UPDATED: Excel column name
-                    '發料日期': req.dispatchMethod, // Use YYYY-MM-DD directly from input type=date
-                    // UPDATED: Excel column names
-                    '發料藥佐': req.driverName,
-                    '核對藥師': req.driverPhone,
-                    // NEW: Added applicantSignee
-                    '申請單位簽收人': req.applicantSignee || '',
-                    '申請備註': req.remarks,
-                    '發料單位備註': req.adminRemarks
-                }));
+                // ***** MODIFIED: Flatten data for Excel (one row per item) *****
+                const dataToExport = [];
+                filteredRequests.forEach(req => {
+                    const baseData = {
+                        '申請單號': req.requestId,
+                        '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW') || '',
+                        '申請狀態': req.dispatchStatus,
+                        '申請單位': req.applicantUnit,
+                        '費用部門代號': req.costCode,
+                        '申請人': req.applicantName,
+                        '送簽主管': req.submittedApprover,
+                        '實際簽核主管': req.approvingManager,
+                        '主管備註': req.managerRemarks,
+                        '發料日期': req.dispatchMethod,
+                        '發料藥佐': req.driverName,
+                        '核對藥師': req.driverPhone,
+                        '申請單位簽收人': req.applicantSignee || '',
+                        '申請備註': req.remarks,
+                        '發料單位備註': req.adminRemarks
+                    };
+
+                    if (req.items && req.items.length > 0) {
+                        req.items.forEach(item => {
+                            dataToExport.push({
+                                ...baseData,
+                                '領料品項名稱': item.itemName,
+                                '材料編號': item.materialId,
+                                '單位': item.itemUnit,
+                                '數量': item.quantity
+                            });
+                        });
+                    } else {
+                        // If a request has no items (shouldn't happen, but good to handle)
+                        dataToExport.push({
+                            ...baseData,
+                            '領料品項名稱': 'N/A',
+                            '材料編號': 'N/A',
+                            '單位': 'N/A',
+                            '數量': 'N/A'
+                        });
+                    }
+                });
+
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, '藥品材料申請單');
@@ -926,13 +977,10 @@
                     }
                 });
 
-                // Reset dynamic fields
-                otherItemContainer.classList.add('hidden');
-                otherItemInput.value = '';
-                materialIdInput.disabled = false;
-                itemUnitInput.disabled = false;
-                materialIdInput.classList.remove('disabled-input');
-                itemUnitInput.classList.remove('disabled-input');
+                // ***** MODIFIED: Reset item container *****
+                itemListContainer.innerHTML = '';
+                state.itemRowCounter = 0;
+                createItemRow(); // Add one empty row back
 
                 adminSection.classList.add('hidden');
                 adminFields.forEach(el => { el.disabled = true; el.classList.add('disabled-input'); });
@@ -947,26 +995,22 @@
                 requestIdInput.value = id;
                 document.getElementById('display_request_id').value = request.requestId || '';
 
-                // --- Field Mapping Rebuilt ---
+                // --- Field Mapping (MODIFIED) ---
                 const fieldMapping = {
                     applicant_unit: request.applicantUnit,
                     cost_code: request.costCode,
-                    item_name_search: request.itemName,
-                    material_id: request.materialId,
-                    item_unit: request.itemUnit,
-                    quantity: request.quantity,
                     applicant_name: request.applicantName,
                     approving_manager_name: request.submittedApprover, 
                     remarks: request.remarks,
                     
                     process_status: request.dispatchStatus,
-                    // UPDATED: Field mapping
                     distribution_method: request.dispatchMethod, // Now date
                     issuer_assistant: request.driverName, 
                     verifying_pharmacist: request.driverPhone, 
                     applicant_signee: request.applicantSignee,
                     management_remarks: request.adminRemarks 
                 };
+                // Removed: item_name_search, material_id, item_unit, quantity
 
                 for (const [key, value] of Object.entries(fieldMapping)) {
                     const el = document.getElementById(key);
@@ -976,8 +1020,7 @@
 
                 // Disable all user-facing form fields
                 const userFields = [
-                    'applicant_unit', 'cost_code', 'item_name_search', 'material_id', 
-                    'item_unit', 'quantity', 'applicant_name', 'approving_manager_name', 'remarks'
+                    'applicant_unit', 'cost_code', 'applicant_name', 'approving_manager_name', 'remarks'
                 ].map(id => document.getElementById(id));
                 
                 userFields.forEach(el => { 
@@ -986,6 +1029,15 @@
                         el.classList.add('disabled-input');
                     }
                 });
+
+                // ***** NEW: Load items *****
+                itemListContainer.innerHTML = ''; // Clear the default row
+                if (request.items && Array.isArray(request.items)) {
+                    request.items.forEach(item => {
+                        createItemRow(item, true); // Pass item data and 'disabled' flag
+                    });
+                }
+                addItemBtn.classList.add('hidden'); // Hide "Add Item" button when viewing
 
                 const isAdmin = state.isLoggedIn;
                 // Allow admin editing if status is "主管退回" as well, so they can reset it
@@ -1011,8 +1063,8 @@
             }
 
             async function deleteRequest(id) {
-                if (!id || !state.db) return;
-                const docRef = doc(state.db, 'requests', id);
+                if (!id || !state.db || !state.collectionPath) return; // ***** MODIFIED: Check for collectionPath
+                const docRef = doc(state.db, state.collectionPath, id); // ***** MODIFIED: Use collectionPath
                 try {
                     await deleteDoc(docRef);
                     showAlert('申請單已成功刪除。');
@@ -1025,8 +1077,8 @@
 
             // --- FIRESTORE & INITIALIZATION ---
             function listenForRequests() {
-                if (!state.db) return;
-                const requestsColRef = collection(state.db, 'requests');
+                if (!state.db || !state.collectionPath) return; // ***** MODIFIED: Check for collectionPath
+                const requestsColRef = collection(state.db, state.collectionPath); // ***** MODIFIED: Use collectionPath
                 onSnapshot(requestsColRef, (snapshot) => {
                     state.requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     state.requests.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -1091,7 +1143,10 @@
                             measurementId: "G-4XDWW8VFDX"
                         };
                     
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    // ***** MODIFIED: Get appId and set collectionPath *****
+                    state.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    state.collectionPath = `artifacts/${state.appId}/public/data/requests`;
+                    console.log(`[FirebaseInit] Using collection path: ${state.collectionPath}`);
 
                     if (!firebaseConfig.apiKey) {
                         showAlert('Firebase 設定不正確，因此無法連接到雲端資料庫。', '資料庫連線失敗');
@@ -1160,22 +1215,37 @@
                 }
             }
             
-            // --- NEW ITEM SEARCH LOGIC ---
-            function populateDatalist() {
-                const datalist = document.getElementById('item-list');
-                datalist.innerHTML = '';
-                // *** UPDATED: Only add names to datalist ***
+            // --- ***** NEW: MULTI-ITEM FUNCTIONS ***** ---
+
+            /**
+             * Populates a specific datalist element with options from the itemDatabase
+             * @param {HTMLDataListElement} datalistElement - The <datalist> element to populate
+             */
+            function populateDatalist(datalistElement) {
+                if (!datalistElement) return;
+                datalistElement.innerHTML = '';
                 state.itemDatabase.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.name;
-                    datalist.appendChild(option);
+                    datalistElement.appendChild(option);
                 });
-                // *** REMOVED: Loop that added item.id to the datalist ***
             }
 
-            function handleItemSelection() {
-                const value = itemSearchInput.value.trim();
-                // Find by name OR ID (allowing user to type ID)
+            /**
+             * Handles the selection or typing in an item search input
+             * @param {Event} event - The input or change event from the search input
+             */
+            function handleItemSelection(event) {
+                const searchInput = event.target;
+                const row = searchInput.closest('.item-row');
+                if (!row) return;
+
+                const materialIdInput = row.querySelector('.material-id-input');
+                const itemUnitInput = row.querySelector('.item-unit-input');
+                const otherItemContainer = row.querySelector('.item-name-other-container');
+                const otherItemInput = row.querySelector('.item-name-other');
+
+                const value = searchInput.value.trim();
                 const selectedItem = state.itemDatabase.find(item => item.name === value || (item.id && item.id === value));
 
                 if (value === "其他(自行輸入)") {
@@ -1190,7 +1260,7 @@
                 } else if (selectedItem) {
                     otherItemContainer.classList.add('hidden');
                     otherItemInput.value = '';
-                    itemSearchInput.value = selectedItem.name; // Ensure name is displayed
+                    searchInput.value = selectedItem.name; // Ensure name is displayed
                     materialIdInput.value = selectedItem.id;
                     itemUnitInput.value = selectedItem.unit;
                     materialIdInput.disabled = true;
@@ -1198,20 +1268,149 @@
                     materialIdInput.classList.add('disabled-input');
                     itemUnitInput.classList.add('disabled-input');
                 } else {
-                    // User is typing a custom value, partial match, or has cleared the field
+                    // User is typing a custom value or partial match
                     otherItemContainer.classList.add('hidden');
                     otherItemInput.value = '';
                     
-                    // Don't clear fields if user is typing manually
-                    // materialIdInput.value = ''; // Clear fields
-                    // itemUnitInput.value = '';   // Clear fields
-                    
+                    // Don't clear fields if user is typing manually, only unlock
                     materialIdInput.disabled = false;
                     itemUnitInput.disabled = false;
                     materialIdInput.classList.remove('disabled-input');
                     itemUnitInput.classList.remove('disabled-input');
                 }
             }
+
+
+            /**
+             * Creates and appends a new item row to the form
+             * @param {Object | null} itemData - Data to pre-populate the row (used for loading)
+             * @param {boolean} disabled - Whether to load the row in a disabled (view-only) state
+             */
+            function createItemRow(itemData = null, disabled = false) {
+                const rowId = state.itemRowCounter++;
+                const row = document.createElement('div');
+                row.className = 'item-row grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-4 items-end';
+                
+                // 1. Item Search (Name)
+                row.innerHTML = `
+                    <div class="md:col-span-4">
+                        <label for="item_name_search_${rowId}" class="block text-sm font-medium text-gray-700">申請藥品 (搜尋品名或編號)</label>
+                        <input type="text" id="item_name_search_${rowId}" list="item-list-${rowId}" class="item-name-search mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" autocomplete="off">
+                        <datalist id="item-list-${rowId}"></datalist>
+                    </div>
+                `;
+                
+                // 2. Other Item Container (Hidden)
+                const otherContainer = document.createElement('div');
+                otherContainer.id = `item_name_other_container_${rowId}`;
+                otherContainer.className = 'item-name-other-container hidden md:col-span-4';
+                otherContainer.innerHTML = `
+                    <label for="item_name_other_${rowId}" class="block text-sm font-medium text-gray-700">品名 (其他)</label>
+                    <input type="text" id="item_name_other_${rowId}" class="item-name-other mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                `;
+                row.appendChild(otherContainer);
+
+                // 3. Material ID
+                const materialIdDiv = document.createElement('div');
+                materialIdDiv.className = 'md:col-span-3';
+                materialIdDiv.innerHTML = `
+                    <label for="material_id_${rowId}" class="block text-sm font-medium text-gray-700">材料編號</label>
+                    <input type="text" id="material_id_${rowId}" class="material-id-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                `;
+                row.appendChild(materialIdDiv);
+                
+                // 4. Unit
+                const unitDiv = document.createElement('div');
+                unitDiv.className = 'md:col-span-2';
+                unitDiv.innerHTML = `
+                    <label for="item_unit_${rowId}" class="block text-sm font-medium text-gray-700">單位</label>
+                    <input type="text" id="item_unit_${rowId}" class="item-unit-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                `;
+                row.appendChild(unitDiv);
+
+                // 5. Quantity
+                const quantityDiv = document.createElement('div');
+                quantityDiv.className = 'md:col-span-2';
+                quantityDiv.innerHTML = `
+                    <label for="quantity_${rowId}" class="block text-sm font-medium text-gray-700">数量</label>
+                    <input type="text" id="quantity_${rowId}" class="quantity-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="例如: 10">
+                `;
+                row.appendChild(quantityDiv);
+
+                // 6. Remove Button
+                const removeBtnDiv = document.createElement('div');
+                removeBtnDiv.className = 'md:col-span-1 flex items-end justify-end';
+                removeBtnDiv.innerHTML = `
+                    <button type="button" title="移除此品項" class="remove-item-btn p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12.578 0h11.218c1.29 0 2.47.63 3.163 1.708m-11.218 0a48.067 48.067 0 01-3.478-.397m12.578 0L12 2.25v3.545m-3.163 1.708L9.5 2.25v5.292" />
+                        </svg>
+                    </button>
+                `;
+                row.appendChild(removeBtnDiv);
+
+                // Add row to container
+                itemListContainer.appendChild(row);
+
+                // Populate the new datalist
+                const datalist = row.querySelector(`#item-list-${rowId}`);
+                populateDatalist(datalist);
+
+                // Attach event listeners
+                const searchInput = row.querySelector('.item-name-search');
+                searchInput.addEventListener('input', handleItemSelection);
+                searchInput.addEventListener('change', handleItemSelection);
+
+                const removeBtn = row.querySelector('.remove-item-btn');
+                removeBtn.addEventListener('click', () => {
+                    row.remove();
+                    // If it's the last row, add a new empty one
+                    if (itemListContainer.children.length === 0) {
+                        createItemRow();
+                    }
+                });
+                
+                // If itemData is provided (loading from DB)
+                if (itemData) {
+                    searchInput.value = itemData.itemName || '';
+                    
+                    const selectedItem = state.itemDatabase.find(item => item.name === itemData.itemName);
+                    if (!selectedItem || itemData.itemName === "其他(自行輸入)") {
+                        // It's a custom item
+                        otherContainer.classList.remove('hidden');
+                        otherContainer.querySelector('.item-name-other').value = itemData.itemName;
+                        // And force search input to "其他"
+                        searchInput.value = "其他(自行輸入)";
+                    }
+
+                    materialIdDiv.querySelector('.material-id-input').value = itemData.materialId || '';
+                    unitDiv.querySelector('.item-unit-input').value = itemData.itemUnit || '';
+                    quantityDiv.querySelector('.quantity-input').value = itemData.quantity || '';
+                }
+                
+                // If disabled (loading from DB to view)
+                if (disabled) {
+                    row.querySelectorAll('input').forEach(input => {
+                        input.disabled = true;
+                        input.classList.add('disabled-input');
+                    });
+                    removeBtn.classList.add('hidden'); // Hide remove button in view mode
+                }
+
+                // Apply initial state for pre-filled data
+                if (itemData) {
+                     handleItemSelection({ target: searchInput });
+                     // Re-disable if needed (handleItemSelection might re-enable)
+                     if (disabled) {
+                         row.querySelectorAll('input').forEach(input => {
+                            input.disabled = true;
+                            input.classList.add('disabled-input');
+                        });
+                     }
+                }
+            }
+            // --- END: MULTI-ITEM FUNCTIONS ---
+
 
             // --- EVENT LISTENERS ---
             logoutBtn.addEventListener('click', logout);
@@ -1231,24 +1430,18 @@
                 setTimeout(() => { if (icon) icon.classList.remove('animate-spin'); }, 700);
             });
             
-            // --- UPDATED/NEW Listeners for item search ---
-            itemSearchInput.addEventListener('change', handleItemSelection); // When user selects from dropdown
-            itemSearchInput.addEventListener('input', handleItemSelection);  // As user types
-            
-            // *** NEW: Click listener to allow re-selection ***
-            itemSearchInput.addEventListener('click', () => {
-                // If the input already has a value (i.e., user clicked on a selected item)
-                // and it's one of the database items (not "其他")
-                const selectedItem = state.itemDatabase.find(item => item.name === itemSearchInput.value);
-                if (itemSearchInput.value && selectedItem && selectedItem.name !== "其他(自行輸入)") {
-                    itemSearchInput.value = ''; // Clear it
-                    handleItemSelection(); // Trigger the logic to unlock fields
-                }
-                // If it's empty or "其他", this does nothing, allowing default dropdown behavior
-            });
+            // ***** NEW: Add item button listener *****
+            addItemBtn.addEventListener('click', () => createItemRow());
+
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                
+                if (!state.collectionPath) { // ***** MODIFIED: Check for collectionPath
+                     showAlert('資料庫尚未準備就緒，請稍後再試。', '錯誤');
+                     return;
+                }
+                
                 const applicantName = document.getElementById('applicant_name').value;
                 if (!applicantName && !state.editingRequestId) { // Only require name for NEW applications
                     showAlert('請填寫申請人姓名！', '資料不完整'); 
@@ -1263,29 +1456,72 @@
 
                 try {
                     if (state.editingRequestId) {
-                        // Handle admin update
+                        // Handle admin update (only updates status, not items)
                         const formData = {
                              dispatchStatus: document.getElementById('process_status').value, 
-                            // UPDATED: Admin fields
                             dispatchMethod: document.getElementById('distribution_method').value, // Now date
                             driverName: document.getElementById('issuer_assistant').value, 
                             driverPhone: document.getElementById('verifying_pharmacist').value, 
                             applicantSignee: document.getElementById('applicant_signee').value,
                             adminRemarks: document.getElementById('management_remarks').value, 
                         };
-                        const docRef = doc(state.db, 'requests', state.editingRequestId);
+                        const docRef = doc(state.db, state.collectionPath, state.editingRequestId); // ***** MODIFIED: Use collectionPath
                         await updateDoc(docRef, formData);
                         showAlert('申請單已更新！');
                         resetForm();
                         setActiveTab('admin'); // Go back to admin list after update
                     } else {
                         // Handle new application
+                        
+                        // ***** NEW: Read all item rows *****
+                        const items = [];
+                        const itemRows = document.querySelectorAll('#item-list-container .item-row');
+                        let hasError = false;
+
+                        if (itemRows.length === 0) {
+                            showAlert('請至少新增一項申請品項。', '資料不完整');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '提交新申請';
+                            return;
+                        }
+
+                        itemRows.forEach(row => {
+                            const itemNameSearch = row.querySelector('.item-name-search').value;
+                            const itemNameOther = row.querySelector('.item-name-other').value;
+                            const finalItemName = (itemNameSearch === '其他(自行輸入)') ? itemNameOther : itemNameSearch;
+                            
+                            const materialId = row.querySelector('.material-id-input').value;
+                            const itemUnit = row.querySelector('.item-unit-input').value;
+                            const quantity = row.querySelector('.quantity-input').value;
+
+                            if (!finalItemName || !quantity) {
+                                hasError = true;
+                                row.classList.add('border-red-500', 'animate-shake');
+                                setTimeout(() => { row.classList.remove('border-red-500', 'animate-shake'); }, 600);
+                            }
+
+                            items.push({
+                                itemName: finalItemName,
+                                materialId: materialId,
+                                itemUnit: itemUnit,
+                                quantity: quantity
+                            });
+                        });
+
+                        if (hasError) {
+                            showAlert('請填寫所有品項的「名稱/品名」與「數量」。', '資料不完整');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '提交新申請';
+                            return;
+                        }
+
+                        // --- Continue with submission ---
                         const today = new Date();
                         const yyyy = today.getFullYear();
                         const mm = String(today.getMonth() + 1).padStart(2, '0');
                         const datePrefix = `${yyyy}${mm}`;
 
-                        const requestsColRef = collection(state.db, 'requests');
+                        const requestsColRef = collection(state.db, state.collectionPath); // ***** MODIFIED: Use collectionPath
                         const q = query(requestsColRef,
                             where("requestId", ">=", `${datePrefix}-`),
                             where("requestId", "<", `${datePrefix}-~`)
@@ -1294,17 +1530,10 @@
                         const newSeq = String(querySnapshot.size + 1).padStart(3, '0');
                         const newRequestId = `${datePrefix}-${newSeq}`;
 
-                        // --- FormData Object Rebuilt ---
-                        const itemNameSearch = document.getElementById('item_name_search').value;
-                        const itemNameOther = document.getElementById('item_name_other').value;
-                        const finalItemName = (itemNameSearch === '其他(自行輸入)') ? itemNameOther : itemNameSearch;
-
+                        // --- FormData Object (MODIFIED) ---
                         const formData = {
                             requestId: newRequestId,
-                            itemName: finalItemName,
-                            materialId: document.getElementById('material_id').value,
-                            itemUnit: document.getElementById('item_unit').value,
-                            quantity: document.getElementById('quantity').value,
+                            items: items, // ***** MODIFIED: Save items array *****
                             applicantUnit: document.getElementById('applicant_unit').value,
                             costCode: document.getElementById('cost_code').value,
                             applicantName: applicantName,
@@ -1320,6 +1549,7 @@
                             adminRemarks: '', // DB field for managementRemarks
                             createdAt: serverTimestamp()
                          };
+                         // Removed: itemName, materialId, itemUnit, quantity
 
                         const newDocRef = await addDoc(requestsColRef, formData);
 
@@ -1341,7 +1571,10 @@
 
             // --- KICKSTART THE APP ---
             function init() {
-                populateDatalist(); // Populate the datalist on load
+                // ***** MODIFIED: Don't populate main datalist, just add first row *****
+                // populateDatalist(); // This is no longer needed here
+                createItemRow(); // Create the first empty item row on load
+                
                 handleUrlParams();
                 initFirebase();
                 setActiveTab('apply');
@@ -1352,3 +1585,4 @@
     </script>
 </body>
 </html>
+
