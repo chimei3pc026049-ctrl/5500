@@ -92,8 +92,13 @@
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-4">         
-                <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain"> 
+            <div class="flex items-center gap-4">        
+                <!-- 
+                    NOTE: The 'logo.png' is a placeholder. 
+                    If you have a specific logo URL, replace 'logo.png' with it.
+                    Otherwise, it will show a broken image icon.
+                -->
+                <img src="https://placehold.co/64x64/003366/FFFFFF?text=CCH" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain rounded-lg"> 
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院酒精/藥品申請系統</h1>
             </div>
         </header>
@@ -107,6 +112,8 @@
                 <span id="pending-count" class="ml-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden"></span>
             </button>
             <button data-tab="stats" class="tab-btn hidden text-sm sm:text-base font-medium">統計分析</button>
+            <!-- ***** NEW: Stats Dispatch Tab ***** -->
+            <button data-tab="stats-dispatch" class="tab-btn hidden text-sm sm:text-base font-medium">領料明細</button>
         </nav>
 
         <main>
@@ -146,10 +153,10 @@
                         <div class="flex justify-between items-center border-t pt-6">
                              <h3 class="text-lg font-medium text-gray-800">申請品項</h3>
                              <button type="button" id="add-item-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                ＋ 新增品項
+                                 ＋ 新增品項
                              </button>
                         </div>
-                       
+                        
                         <div id="item-list-container" class="space-y-6">
                             <!-- Item rows will be injected here by JavaScript -->
                         </div>
@@ -277,8 +284,8 @@
             <div id="tab-content-stats" class="tab-content hidden bg-white p-6 sm:p-8 rounded-b-2xl shadow-lg">
                  <div id="stats-view" class="hidden">
                      <div class="flex justify-between items-center mb-6 border-b pb-4">
-                         <h2 class="text-xl font-bold text-gray-800">數據統計分析</h2>
-                         <button id="export-excel-btn" class="py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">匯出 Excel</button>
+                        <h2 class="text-xl font-bold text-gray-800">數據統計分析</h2>
+                        <button id="export-excel-btn" class="py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">匯出 Excel</button>
                      </div>
 
                      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 p-4 bg-gray-50 rounded-lg">
@@ -312,6 +319,32 @@
                      <button id="stats-login-prompt-btn" class="mt-4 py-2 px-6 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700">立即登入</button>
                  </div>
             </div>
+            
+            <!-- ***** NEW: Stats Dispatch Tab Content ***** -->
+            <div id="tab-content-stats-dispatch" class="tab-content hidden bg-white p-6 sm:p-8 rounded-b-2xl shadow-lg">
+                <div id="stats-dispatch-view" class="hidden">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-xl font-bold text-gray-800">領料明細簽收</h2>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-start items-center mb-6 gap-4 p-4 bg-gray-50 rounded-lg">
+                         <div class="flex items-center gap-2">
+                             <label for="stats-dispatch-date-filter" class="text-sm font-medium text-gray-700">選擇領料日期:</label>
+                             <input type="date" id="stats-dispatch-date-filter" class="border-gray-300 rounded-md shadow-sm p-2">
+                             <button id="stats-dispatch-generate-btn" class="py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">產生領料單</button>
+                         </div>
+                    </div>
+                    
+                    <div id="stats-dispatch-results" class="mt-6 space-y-4">
+                        <p class="text-center text-gray-500">請選擇日期以產生領料明細。</p>
+                    </div>
+                </div>
+                <div id="stats-dispatch-login-prompt" class="text-center py-10">
+                    <p class="text-gray-600">此為管理員專區，請先登入查看領料明細。</p>
+                    <button id="stats-dispatch-login-prompt-btn" class="mt-4 py-2 px-6 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700">立即登入</button>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -328,7 +361,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // ***** UPDATED: Added writeBatch *****
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setLogLevel, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 藥品/材料資料庫 ---
         const itemDatabase = [
@@ -401,6 +435,15 @@
             // --- ***** NEW: MULTI-ITEM ELEMENTS ***** ---
             const addItemBtn = document.getElementById('add-item-btn');
             const itemListContainer = document.getElementById('item-list-container');
+
+            // --- ***** NEW: STATS DISPATCH ELEMENTS ***** ---
+            const statsDispatchTabBtn = document.querySelector('button[data-tab="stats-dispatch"]');
+            const statsDispatchView = document.getElementById('stats-dispatch-view');
+            const statsDispatchLoginPrompt = document.getElementById('stats-dispatch-login-prompt');
+            const statsDispatchLoginPromptBtn = document.getElementById('stats-dispatch-login-prompt-btn');
+            const statsDispatchDateFilter = document.getElementById('stats-dispatch-date-filter');
+            const statsDispatchGenerateBtn = document.getElementById('stats-dispatch-generate-btn');
+            const statsDispatchResults = document.getElementById('stats-dispatch-results');
 
 
             // --- MODAL ELEMENTS & FUNCTIONS ---
@@ -514,7 +557,10 @@
                         state.isLoggedIn = true;
                         showAlert('登入成功！', '管理員登入');
                         updateUI();
-                        setActiveTab('admin');
+                        // ***** MODIFIED: Go to admin tab by default, but if stats was clicked, go there
+                        if (state.activeTab !== 'stats' && state.activeTab !== 'stats-dispatch') {
+                            setActiveTab('admin');
+                        }
                     } else {
                         errorEl.textContent = '帳號或密碼錯誤。';
                         const modalBox = modal.querySelector('div'); modalBox.classList.add('animate-shake'); setTimeout(() => { modalBox.classList.remove('animate-shake'); }, 500);
@@ -584,7 +630,9 @@
                 state.activeTab = tabName;
                 tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
                 tabContents.forEach(content => content.classList.toggle('hidden', content.id !== `tab-content-${tabName}`));
+                
                 if (tabName === 'admin') updateAdminTabVisibility();
+                
                 if (tabName === 'stats') {
                      if (!statsMonthFilter.value) {
                          const now = new Date();
@@ -594,6 +642,20 @@
                      }
                     updateStatsTabVisibility();
                     renderStatistics();
+                 }
+                 
+                 // ***** NEW: Handle Stats Dispatch Tab *****
+                 if (tabName === 'stats-dispatch') {
+                     if (!statsDispatchDateFilter.value) {
+                         const now = new Date();
+                         const year = now.getFullYear();
+                         const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                         const day = now.getDate().toString().padStart(2, '0');
+                         statsDispatchDateFilter.value = `${year}-${month}-${day}`;
+                     }
+                     updateStatsDispatchTabVisibility();
+                     // Do not auto-render, wait for button click
+                     // renderDispatchList(); 
                  }
             }
 
@@ -619,10 +681,18 @@
                 statsView.classList.toggle('hidden', !showStatsView);
                 statsLoginPrompt.classList.toggle('hidden', showStatsView);
             }
+            
+            // ***** NEW: Stats Dispatch Tab Visibility *****
+            function updateStatsDispatchTabVisibility() {
+                const showStatsDispatchView = state.isLoggedIn && state.activeTab === 'stats-dispatch';
+                statsDispatchView.classList.toggle('hidden', !showStatsDispatchView);
+                statsDispatchLoginPrompt.classList.toggle('hidden', showStatsDispatchView);
+            }
 
             function updateUI() {
                 if (state.isLoggedIn) {
                     statsTabBtn.classList.remove('hidden');
+                    statsDispatchTabBtn.classList.remove('hidden'); // ***** NEW: Show dispatch tab
                     if (logoutBtn) logoutBtn.classList.remove('hidden');
 
                     const pendingCount = state.requests.filter(r => r.dispatchStatus === '待發料單位處理').length;
@@ -636,25 +706,27 @@
                     }
                 } else {
                     statsTabBtn.classList.add('hidden');
+                    statsDispatchTabBtn.classList.add('hidden'); // ***** NEW: Hide dispatch tab
                     if (logoutBtn) logoutBtn.classList.add('hidden');
                     pendingCountBadge.classList.add('hidden');
                 }
                 updateAdminTabVisibility();
                 updateStatsTabVisibility();
+                updateStatsDispatchTabVisibility(); // ***** NEW: Update dispatch tab
                 renderAdminList();
             }
 
             function getStatusBadgeClass(status) {
                  switch(status) {
-                    case '待單位主管簽核': return 'status-manager-approval';
-                    case '主管退回': return 'status-manager-rejected';
-                    case '待發料單位處理': return 'status-pending';
-                    case '已備料': return 'status-dispatched'; // Assuming '已備料' uses '已發料' style
-                    case '已發料': return 'status-dispatched';
-                    case '申請取消': return 'status-cancelled';
-                    case '無法發料': return 'status-rejected';
-                    default: return 'status-rejected';
-                }
+                     case '待單位主管簽核': return 'status-manager-approval';
+                     case '主管退回': return 'status-manager-rejected';
+                     case '待發料單位處理': return 'status-pending';
+                     case '已備料': return 'status-dispatched'; // Assuming '已備料' uses '已發料' style
+                     case '已發料': return 'status-dispatched';
+                     case '申請取消': return 'status-cancelled';
+                     case '無法發料': return 'status-rejected';
+                     default: return 'status-rejected';
+                 }
             }
 
             // --- DATA FILTERING ---
@@ -681,14 +753,14 @@
                         try {
                             if (action.approved) {
                                 await updateDoc(docRef, {
-                                     dispatchStatus: '待發料單位處理', 
+                                    dispatchStatus: '待發料單位處理', 
                                     approvingManager: action.name, // This is the *actual* approver
                                     managerRemarks: action.remarks
                                  });
                                 showAlert('申請單已簽核！');
                             } else {
                                  await updateDoc(docRef, {
-                                     dispatchStatus: '主管退回',
+                                    dispatchStatus: '主管退回',
                                     approvingManager: action.name,
                                     managerRemarks: action.remarks
                                  });
@@ -751,7 +823,7 @@
                     card.querySelector('.delete-btn').addEventListener('click', (e) => {
                          e.stopPropagation();
                          showConfirm(`確定要刪除由 ${req.applicantName} 提出的申請嗎？`, confirmed => {
-                            if (confirmed) deleteRequest(req.id);
+                             if (confirmed) deleteRequest(req.id);
                         });
                      });
                     requestsList.appendChild(card);
@@ -778,6 +850,8 @@
                     const createdAt = req.createdAt?.toDate() ? req.createdAt.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : 'N/A';
                     // UPDATED: Format dispatchMethod (which is now dispatchDate) as date only
                     const dispatchDate = req.dispatchMethod ? req.dispatchMethod : '---'; // Use YYYY-MM-DD directly
+                    // ***** NEW: Format signee timestamp *****
+                    const signeeTimestamp = req.signeeTimestamp?.toDate() ? req.signeeTimestamp.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16) : '---';
 
                     let managerActionsHTML = '';
                     if (req.dispatchStatus === '待單位主管簽核') {
@@ -822,6 +896,8 @@
                             <p><strong>核對藥師:</strong> ${req.driverPhone || '---'}</p>
                             <!-- NEW: Added applicantSignee -->
                             <p><strong>申請單位簽收人:</strong> ${req.applicantSignee || '---'}</p>
+                            <!-- NEW: Added signeeTimestamp -->
+                            <p><strong>簽收時間:</strong> ${signeeTimestamp}</p>
                             
                             <p class="sm:col-span-2"><strong>申請備註:</strong> ${req.remarks || '---'}</p>
                             ${req.adminRemarks ? `<p class="sm:col-span-2"><strong>發料單位備註:</strong> ${req.adminRemarks}</p>` : ''}
@@ -901,51 +977,197 @@
                     }
                 });
             }
+            
+            // --- ***** NEW: Render Dispatch List Function ***** ---
+            async function handleSaveSignature(event) {
+                const button = event.currentTarget;
+                const unit = button.dataset.unit;
+                const card = button.closest('.unit-dispatch-card');
+                const signeeName = card.querySelector('.signee-input').value.trim();
+                const requestIds = JSON.parse(button.dataset.requestIds);
+                
+                if (!signeeName) {
+                    showAlert('請輸入簽收人姓名。', '錯誤');
+                    card.querySelector('.signee-input').focus();
+                    return;
+                }
+                
+                button.disabled = true;
+                button.textContent = '儲存中...';
+
+                try {
+                    const timestamp = serverTimestamp(); // Use server timestamp
+                    const batch = writeBatch(state.db);
+                    
+                    requestIds.forEach(id => {
+                        const docRef = doc(state.db, state.collectionPath, id);
+                        batch.update(docRef, { 
+                            applicantSignee: signeeName, 
+                            signeeTimestamp: timestamp 
+                        });
+                    });
+                    
+                    await batch.commit();
+                    showAlert(`單位 [${unit}] 的簽收已儲存。\n簽收人: ${signeeName}`);
+                    // UI will auto-update from onSnapshot
+                    
+                } catch (error) {
+                    console.error("Error saving signature:", error);
+                    showAlert('儲存簽收失敗，請稍後再試。', '錯誤');
+                } finally {
+                     // The button might be gone after re-render, but this is a fallback
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = '儲存簽收';
+                    }
+                }
+            }
+
+            function renderDispatchList() {
+                const selectedDate = statsDispatchDateFilter.value;
+                if (!selectedDate) {
+                    showAlert('請選擇一個領料日期。', '錯誤');
+                    return;
+                }
+                
+                const requestsForDate = state.requests.filter(r => r.dispatchMethod === selectedDate);
+                
+                if (requestsForDate.length === 0) {
+                    statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
+                    return;
+                }
+
+                // Group by unit
+                const units = new Map();
+                requestsForDate.forEach(req => {
+                    const unit = req.applicantUnit || '未分類單位';
+                    if (!units.has(unit)) {
+                        units.set(unit, { 
+                            items: [], 
+                            requestIds: [], 
+                            signee: '', 
+                            timestamp: null 
+                        });
+                    }
+                    const unitData = units.get(unit);
+                    unitData.requestIds.push(req.id);
+                    if (req.items && Array.isArray(req.items)) {
+                        req.items.forEach(item => {
+                            // Add applicantName to item for reference
+                            unitData.items.push({ ...item, applicantName: req.applicantName });
+                        });
+                    }
+                    
+                    // Find the latest signee info for this unit on this day
+                    if (req.signeeTimestamp && (!unitData.timestamp || req.signeeTimestamp.seconds > unitData.timestamp.seconds)) {
+                        unitData.signee = req.applicantSignee;
+                        unitData.timestamp = req.signeeTimestamp;
+                    } else if (req.applicantSignee && !unitData.signee) {
+                        // Handle case where one has signee but no timestamp (older data?)
+                        unitData.signee = req.applicantSignee;
+                    }
+                });
+                
+                statsDispatchResults.innerHTML = ''; // Clear previous results
+                
+                // Aggregate items within each unit
+                units.forEach((unitData, unit) => {
+                    const aggregatedItems = new Map();
+                    unitData.items.forEach(item => {
+                        const key = `${item.itemName}|${item.materialId}|${item.itemUnit}`;
+                        if (!aggregatedItems.has(key)) {
+                            aggregatedItems.set(key, { 
+                                itemName: item.itemName, 
+                                materialId: item.materialId, 
+                                itemUnit: item.itemUnit, 
+                                totalQuantity: 0,
+                                applicants: new Set()
+                            });
+                        }
+                        const entry = aggregatedItems.get(key);
+                        const quantity = parseInt(item.quantity, 10);
+                        if (!isNaN(quantity)) {
+                            entry.totalQuantity += quantity;
+                        }
+                        entry.applicants.add(item.applicantName);
+                    });
+                    
+                    // --- Create Card ---
+                    const card = document.createElement('div');
+                    card.className = 'unit-dispatch-card p-4 border rounded-lg bg-white shadow';
+                    
+                    let itemsHtml = '<ul class="list-disc pl-6 my-2 space-y-1">';
+                    if (aggregatedItems.size === 0) {
+                        itemsHtml += '<li>無品項資料</li>';
+                    } else {
+                        aggregatedItems.forEach(item => {
+                            itemsHtml += `
+                                <li class="text-sm">
+                                    <strong class="text-base">${item.itemName || 'N/A'}</strong> (編號: ${item.materialId || 'N/A'})<br>
+                                    總數量: <span class="font-bold text-blue-600">${item.totalQuantity}</span> ${item.itemUnit || ''}
+                                    <span class="text-xs text-gray-500 block">(申請人: ${Array.from(item.applicants).join(', ')})</span>
+                                </li>`;
+                        });
+                    }
+                    itemsHtml += '</ul>';
+                    
+                    const timestampStr = unitData.timestamp ? `(於 ${unitData.timestamp.toDate().toLocaleString('zh-TW', { hour12: false }).slice(0, 16)} 簽收)` : '';
+                    
+                    card.innerHTML = `
+                        <h3 class="text-lg font-bold text-gray-800 border-b pb-2">單位: ${unit}</h3>
+                        ${itemsHtml}
+                        <div class="mt-4 pt-4 border-t flex flex-col sm:flex-row gap-4 items-center">
+                            <label for="signee-${unit}" class="text-sm font-medium text-gray-700 flex-shrink-0">簽收人:</label>
+                            <input type="text" id="signee-${unit}" class="signee-input w-full sm:w-auto flex-grow px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" data-unit="${unit}" value="${unitData.signee || ''}">
+                            <button class="save-signee-btn w-full sm:w-auto py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700" data-unit="${unit}" data-request-ids='${JSON.stringify(unitData.requestIds)}'>儲存簽收</a-button>
+                        </div>
+                        <p class="text-xs text-gray-500 text-right h-4 mt-1 signee-timestamp">${timestampStr}</p>
+                    `;
+                    
+                    statsDispatchResults.appendChild(card);
+                    
+                    // Attach listener
+                    card.querySelector('.save-signee-btn').addEventListener('click', handleSaveSignature);
+                });
+            }
+
 
             // --- EXCEL EXPORT (MODIFIED) ---
             function exportToExcel() {
                 const filteredRequests = getFilteredRequests();
-                // ***** MODIFIED: Flatten data for Excel (one row per item) *****
+                
+                // ***** MODIFIED: Flatten data for Excel (one row per item) & set column order *****
                 const dataToExport = [];
+                
                 filteredRequests.forEach(req => {
-                    const baseData = {
-                        '申請單號': req.requestId,
-                        '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW') || '',
-                        '申請狀態': req.dispatchStatus,
-                        '申請單位': req.applicantUnit,
-                        '費用部門代號': req.costCode,
-                        '申請人': req.applicantName,
-                        '送簽主管': req.submittedApprover,
-                        '實際簽核主管': req.approvingManager,
-                        '主管備註': req.managerRemarks,
-                        '發料日期': req.dispatchMethod,
-                        '發料藥佐': req.driverName,
-                        '核對藥師': req.driverPhone,
-                        '申請單位簽收人': req.applicantSignee || '',
-                        '申請備註': req.remarks,
-                        '發料單位備註': req.adminRemarks
-                    };
-
-                    if (req.items && req.items.length > 0) {
-                        req.items.forEach(item => {
-                            dataToExport.push({
-                                ...baseData,
-                                '領料品項名稱': item.itemName,
-                                '材料編號': item.materialId,
-                                '單位': item.itemUnit,
-                                '數量': item.quantity
-                            });
-                        });
-                    } else {
-                        // If a request has no items (shouldn't happen, but good to handle)
-                        dataToExport.push({
-                            ...baseData,
-                            '領料品項名稱': 'N/A',
-                            '材料編號': 'N/A',
-                            '單位': 'N/A',
-                            '數量': 'N/A'
-                        });
-                    }
+                    const items = (req.items && req.items.length > 0) ? req.items : [{}]; // Handle requests with no items
+                    
+                    items.forEach(item => {
+                        const rowData = {
+                            '申請單號': req.requestId,
+                            '申請時間': req.createdAt?.toDate()?.toLocaleString('zh-TW', { hour12: false }) || '',
+                            '申請狀態': req.dispatchStatus,
+                            '申請單位': req.applicantUnit,
+                            '費用部門代號': req.costCode,
+                            '申請人': req.applicantName,
+                            '送簽主管': req.submittedApprover,
+                            '實際簽核主管': req.approvingManager,
+                            '主管備註': req.managerRemarks,
+                            '發料日期': req.dispatchMethod,
+                            '發料藥佐': req.driverName,
+                            '核對藥師': req.driverPhone,
+                            // --- NEW ORDER ---
+                            '領料品項名稱': item.itemName || 'N/A',
+                            '材料編號': item.materialId || 'N/A',
+                            '單位': item.itemUnit || 'N/A',
+                            '數量': item.quantity || 'N/A',
+                            '申請備註': req.remarks,
+                            '發料單位備註': req.adminRemarks,
+                            '申請單位簽收人': req.applicantSignee || '',
+                            '簽收時間': req.signeeTimestamp?.toDate()?.toLocaleString('zh-TW', { hour12: false }) || ''
+                        };
+                        dataToExport.push(rowData);
+                    });
                 });
 
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -968,6 +1190,7 @@
                 submitBtn.classList.replace('bg-green-600', 'bg-blue-600');
                 submitBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
                 clearBtn.classList.remove('hidden');
+                addItemBtn.classList.remove('hidden'); // ***** NEW: Show add item btn
 
                 const allUserFields = form.querySelectorAll('input, textarea, select');
                 allUserFields.forEach(el => {
@@ -1113,6 +1336,13 @@
                     updateUI();
                     if(state.activeTab === 'search') { handleSearch(); }
                     if(state.activeTab === 'stats' && state.isLoggedIn) { renderStatistics(); }
+                    // ***** NEW: Re-render dispatch list if it's the active tab *****
+                    if(state.activeTab === 'stats-dispatch' && state.isLoggedIn) { 
+                        // Only re-render if a date is selected
+                        if (statsDispatchDateFilter.value) {
+                            renderDispatchList(); 
+                        }
+                    }
                 }, (error) => {
                     console.error("Error listening for requests:", error);
                     showAlert('無法讀取資料庫，請檢查網路連線或重新整理頁面。', '錯誤');
@@ -1272,7 +1502,10 @@
                     otherItemContainer.classList.add('hidden');
                     otherItemInput.value = '';
                     
-                    // Don't clear fields if user is typing manually, only unlock
+                    // ***** MODIFIED: Do not clear fields, just unlock them
+                    // materialIdInput.value = '';  <- REMOVED
+                    // itemUnitInput.value = '';  <- REMOVED
+                    
                     materialIdInput.disabled = false;
                     itemUnitInput.disabled = false;
                     materialIdInput.classList.remove('disabled-input');
@@ -1433,6 +1666,10 @@
             // ***** NEW: Add item button listener *****
             addItemBtn.addEventListener('click', () => createItemRow());
 
+            // ***** NEW: Stats Dispatch listeners *****
+            statsDispatchLoginPromptBtn.addEventListener('click', promptLogin);
+            statsDispatchGenerateBtn.addEventListener('click', renderDispatchList);
+
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1459,11 +1696,11 @@
                         // Handle admin update (only updates status, not items)
                         const formData = {
                              dispatchStatus: document.getElementById('process_status').value, 
-                            dispatchMethod: document.getElementById('distribution_method').value, // Now date
-                            driverName: document.getElementById('issuer_assistant').value, 
-                            driverPhone: document.getElementById('verifying_pharmacist').value, 
-                            applicantSignee: document.getElementById('applicant_signee').value,
-                            adminRemarks: document.getElementById('management_remarks').value, 
+                             dispatchMethod: document.getElementById('distribution_method').value, // Now date
+                             driverName: document.getElementById('issuer_assistant').value, 
+                             driverPhone: document.getElementById('verifying_pharmacist').value, 
+                             applicantSignee: document.getElementById('applicant_signee').value,
+                             adminRemarks: document.getElementById('management_remarks').value, 
                         };
                         const docRef = doc(state.db, state.collectionPath, state.editingRequestId); // ***** MODIFIED: Use collectionPath
                         await updateDoc(docRef, formData);
@@ -1500,16 +1737,25 @@
                                 setTimeout(() => { row.classList.remove('border-red-500', 'animate-shake'); }, 600);
                             }
 
-                            items.push({
-                                itemName: finalItemName,
-                                materialId: materialId,
-                                itemUnit: itemUnit,
-                                quantity: quantity
-                            });
+                            if (finalItemName && quantity) { // Only add rows that have data
+                                items.push({
+                                    itemName: finalItemName,
+                                    materialId: materialId,
+                                    itemUnit: itemUnit,
+                                    quantity: quantity
+                                });
+                            }
                         });
 
                         if (hasError) {
                             showAlert('請填寫所有品項的「名稱/品名」與「數量」。', '資料不完整');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '提交新申請';
+                            return;
+                        }
+                        
+                        if (items.length === 0) {
+                            showAlert('請至少新增一項有效的申請品項 (需填寫名稱與數量)。', '資料不完整');
                             submitBtn.disabled = false;
                             submitBtn.textContent = '提交新申請';
                             return;
@@ -1546,10 +1792,11 @@
                             driverName: '', // DB field for issuer_assistant
                             driverPhone: '', // DB field for verifying_pharmacist
                             applicantSignee: '', // NEW: DB field for applicant_signee
+                            signeeTimestamp: null, // ***** NEW: Add signee timestamp *****
                             adminRemarks: '', // DB field for managementRemarks
                             createdAt: serverTimestamp()
                          };
-                         // Removed: itemName, materialId, itemUnit, quantity
+                        // Removed: itemName, materialId, itemUnit, quantity
 
                         const newDocRef = await addDoc(requestsColRef, formData);
 
@@ -1585,4 +1832,3 @@
     </script>
 </body>
 </html>
-
