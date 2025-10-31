@@ -1539,66 +1539,89 @@
             
             // --- ***** MODIFIED: MULTI-ITEM FUNCTIONS ***** ---
 
-            function populateDatalist(datalistElement) {
-                if (!datalistElement) return;
-                datalistElement.innerHTML = '';
-                state.itemDatabase.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.name;
-                    datalistElement.appendChild(option);
-                });
-            }
-
-            function handleItemSelection(event) {
-                const searchInput = event.target;
-                const row = searchInput.closest('.item-row');
-                if (!row) return;
-
-                const materialIdInput = row.querySelector('.material-id-input');
-                const itemUnitInput = row.querySelector('.item-unit-input');
-                const otherItemContainer = row.querySelector('.item-name-other-container');
-                const otherItemInput = row.querySelector('.item-name-other');
-                // ***** NEW: Find item remarks input *****
-                const itemRemarksInput = row.querySelector('.item-remarks-input');
-
-                const value = searchInput.value.trim();
-                const selectedItem = state.itemDatabase.find(item => item.name === value || (item.id && item.id === value));
-
-                if (value === "其他(自行輸入)") {
-                    otherItemContainer.classList.remove('hidden');
-                    materialIdInput.value = '';
-                    itemUnitInput.value = '';
-                    materialIdInput.disabled = false;
-                    itemUnitInput.disabled = false;
-                    itemRemarksInput.disabled = false; // ***** NEW *****
-                    materialIdInput.classList.remove('disabled-input');
-                    itemUnitInput.classList.remove('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input'); // ***** NEW *****
-                    otherItemInput.focus();
-                } else if (selectedItem) {
-                    otherItemContainer.classList.add('hidden');
-                    otherItemInput.value = '';
-                    searchInput.value = selectedItem.name;
-                    materialIdInput.value = selectedItem.id;
-                    itemUnitInput.value = selectedItem.unit;
-                    materialIdInput.disabled = true;
-                    itemUnitInput.disabled = true;
-                    itemRemarksInput.disabled = false; // ***** NEW *****
-                    materialIdInput.classList.add('disabled-input');
-                    itemUnitInput.classList.add('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input'); // ***** NEW *****
-                } else {
-                    otherItemContainer.classList.add('hidden');
-                    otherItemInput.value = '';
+           function populateDatalist(datalistElement) {
+                if (!datalistElement) return;
+                datalistElement.innerHTML = '';
+                state.itemDatabase.forEach(item => {
+                    const option = document.createElement('option');
                     
-                    materialIdInput.disabled = false;
-                    itemUnitInput.disabled = false;
-                    itemRemarksInput.disabled = false; // ***** NEW *****
-                    materialIdInput.classList.remove('disabled-input');
-                    itemUnitInput.classList.remove('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input'); // ***** NEW *****
+                    // *** 變更 ***: 讓選項顯示 "材料編號 - 藥品名稱"
+                    // (排除 "其他" 選項)
+                    if (item.name === "其他(自行輸入)") {
+                        option.value = item.name;
+                    } else {
+                        // 使用 "ID - Name" 格式
+                        option.value = `${item.id} - ${item.name}`; 
+                    }
+                    datalistElement.appendChild(option);
+                });
+            }
+
+         function handleItemSelection(event) {
+                const searchInput = event.target;
+                const row = searchInput.closest('.item-row');
+                if (!row) return;
+
+                const materialIdInput = row.querySelector('.material-id-input');
+                const itemUnitInput = row.querySelector('.item-unit-input');
+                const otherItemContainer = row.querySelector('.item-name-other-container');
+                const otherItemInput = row.querySelector('.item-name-other');
+                const itemRemarksInput = row.querySelector('.item-remarks-input');
+
+                const value = searchInput.value.trim(); // 這裡可能是 "ID - Name"
+
+                // *** 變更 ***: 更新尋找邏輯
+                // 1. 優先比對 "ID - Name" 格式 (當使用者剛從 datalist 選擇時)
+                let selectedItem = state.itemDatabase.find(item => 
+                    `${item.id} - ${item.name}` === value
+                );
+
+                // 2. 如果找不到 (例如使用者點擊一個已經填好 "Name" 的欄位)，則嘗試比對純 Name
+                if (!selectedItem) {
+                    selectedItem = state.itemDatabase.find(item => item.name === value);
                 }
-            }
+
+                if (value === "其他(自行輸入)") {
+                    // (此邏輯不變)
+                    otherItemContainer.classList.remove('hidden');
+                    materialIdInput.value = '';
+                    itemUnitInput.value = '';
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input'); 
+                    otherItemInput.focus();
+                } else if (selectedItem) {
+                    // (此邏輯是關鍵)
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
+                    
+                    // *** 變更 ***: 
+                    // 無論使用者選的是 "ID - Name" 還是 "Name"，都將輸入框的值設回純 "Name"
+                    searchInput.value = selectedItem.name; 
+                    
+                    materialIdInput.value = selectedItem.id;
+                    itemUnitInput.value = selectedItem.unit;
+                    materialIdInput.disabled = true;
+                    itemUnitInput.disabled = true;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.add('disabled-input');
+                    itemUnitInput.classList.add('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input'); 
+                } else {
+                    // (此邏輯不變 - 處理使用者手動輸入非選項內容)
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input');
+                }
+            }
 
             /**
              * Creates and appends a new item row to the form
