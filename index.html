@@ -102,7 +102,7 @@
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-4">                
+            <div class="flex items-center gap-4">            
                 <img src="logo.png" alt="奇美醫院Logo" class="h-12 w-12 sm:h-16 sm:w-16 object-contain rounded-lg" onerror="this.src='https://placehold.co/64x64/003366/FFFFFF?text=CCH&font=inter'; this.onerror=null;">
                 <h1 class="text-xl sm:text-3xl font-bold text-gray-800">佳里奇美醫院 酒精/藥品申請系統</h1>
             </div>
@@ -294,10 +294,14 @@
                          <button id="export-excel-btn" class="py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">匯出 Excel</button>
                      </div>
 
+                     <!-- ***** MODIFIED: Date Range Filter ***** -->
                      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 p-4 bg-gray-50 rounded-lg">
-                         <div class="flex items-center gap-2">
-                             <label for="stats-month-filter" class="text-sm font-medium text-gray-700">篩選月份:</label>
-                             <input type="month" id="stats-month-filter" class="border-gray-300 rounded-md shadow-sm p-2">
+                         <div class="flex flex-wrap items-center gap-2">
+                             <label for="stats-date-start-filter" class="text-sm font-medium text-gray-700">篩選區間:</label>
+                             <input type="date" id="stats-date-start-filter" class="border-gray-300 rounded-md shadow-sm p-2 text-sm">
+                             <span class="text-gray-600">至</span>
+                             <input type="date" id="stats-date-end-filter" class="border-gray-300 rounded-md shadow-sm p-2 text-sm">
+                             <button id="stats-filter-apply-btn" class="py-2 px-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">套用</button>
                          </div>
                          <div class="flex gap-4 text-center">
                              <div class="p-2">
@@ -306,6 +310,7 @@
                              </div>
                          </div>
                      </div>
+                     <!-- ***** END: Date Range Filter ***** -->
 
                      <!-- Charts Updated -->
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -415,7 +420,7 @@
             const requestIdInput = document.getElementById('request-id');
             const adminSection = document.getElementById('admin-section');
             // ***** NEW: Admin Item List Container *****
-            const adminItemListContainer = document.getElementById('admin-item-list'); 
+            const adminItemListContainer = document.getElementById('admin-item-list');    
             
             // 移除 'applicant_signee'
             const adminFields = ['process_status', 'distribution_method', 'issuer_assistant', 'verifying_pharmacist', 'management_remarks'].map(id => document.getElementById(id));
@@ -440,7 +445,10 @@
             const statsLoginPrompt = document.getElementById('stats-login-prompt');
             const statsLoginPromptBtn = document.getElementById('stats-login-prompt-btn');
             const exportExcelBtn = document.getElementById('export-excel-btn');
-            const statsMonthFilter = document.getElementById('stats-month-filter');
+            // ***** MODIFIED: Get new date range filters *****
+            const statsDateStartFilter = document.getElementById('stats-date-start-filter');
+            const statsDateEndFilter = document.getElementById('stats-date-end-filter');
+            const statsFilterApplyBtn = document.getElementById('stats-filter-apply-btn');
             const statsTotalRequests = document.getElementById('stats-total-requests');
             
             const addItemBtn = document.getElementById('add-item-btn');
@@ -648,12 +656,17 @@
                 
                 if (tabName === 'admin') updateAdminTabVisibility();
                 
+                // ***** MODIFIED: Set default date range for stats tab *****
                 if (tabName === 'stats') {
-                     if (!statsMonthFilter.value) {
+                     if (!statsDateStartFilter.value || !statsDateEndFilter.value) {
                          const now = new Date();
                          const year = now.getFullYear();
                          const month = (now.getMonth() + 1).toString().padStart(2, '0');
-                         statsMonthFilter.value = `${year}-${month}`;
+                         const day = now.getDate().toString().padStart(2, '0');
+                         
+                         // Default to current month
+                         statsDateStartFilter.value = `${year}-${month}-01`;
+                         statsDateEndFilter.value = `${year}-${month}-${day}`;
                      }
                     updateStatsTabVisibility();
                     renderStatistics();
@@ -745,17 +758,30 @@
                  }
             }
 
-            // --- DATA FILTERING ---
+            // --- DATA FILTERING (MODIFIED) ---
             function getFilteredRequests() {
-                const filterValue = statsMonthFilter.value; // YYYY-MM
-                if (!filterValue) {
-                    return state.requests;
+                // ***** MODIFIED: Read from date range inputs *****
+                const startDateStr = statsDateStartFilter.value;
+                const endDateStr = statsDateEndFilter.value;
+                
+                if (!startDateStr || !endDateStr) {
+                    return state.requests; // Return all if no range
                 }
-                const [year, month] = filterValue.split('-').map(Number);
+
+                // Create Date objects at midnight (start of day) for comparison
+                const startDate = new Date(startDateStr);
+                startDate.setHours(0, 0, 0, 0);
+
+                // Create Date objects at end of day for comparison
+                const endDate = new Date(endDateStr);
+                endDate.setHours(23, 59, 59, 999);
+                
                 return state.requests.filter(req => {
                     if (!req.createdAt || !req.createdAt.toDate) return false;
                     const reqDate = req.createdAt.toDate();
-                    return reqDate.getFullYear() === year && (reqDate.getMonth() + 1) === month;
+                    
+                    // Check if reqDate is between startDate and endDate (inclusive)
+                    return reqDate >= startDate && reqDate <= endDate;
                 });
             }
 
@@ -839,7 +865,7 @@
                          showConfirm(`確定要刪除由 ${req.applicantName} 提出的申請嗎？`, confirmed => {
                              if (confirmed) deleteRequest(req.id);
                         });
-                     });
+                    });
                     requestsList.appendChild(card);
                 });
             }
@@ -1048,7 +1074,7 @@
                      if (!searchQuery) { 
                          statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
                     } else {
-                        statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
+                         statsDispatchResults.innerHTML = '<p class="text-center text-gray-500">請先選擇日期並點擊「產生領料單」。</p>';
                     }
                     return;
                 }
@@ -1063,7 +1089,7 @@
                      if (searchQuery) {
                          statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合費用部門代號 [${searchQuery}] 的領料資料。</p>`;
                     } else {
-                        statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
+                         statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無領料資料。</p>`;
                     }
                     return;
                 }
@@ -1108,7 +1134,7 @@
                 if (units.size === 0 && searchQuery) {
                      statsDispatchResults.innerHTML = `<p class="text-center text-gray-500">日期 [${selectedDate}] 查無符合費用部門代號 [${searchQuery}] 的領料資料。</p>`;
                      return;
-                 }
+                }
 
                 // Aggregate items within each unit
                 units.forEach((unitData, unit) => {
@@ -1158,8 +1184,8 @@
                                 remarksHtml += `<div class="text-xs text-gray-500 mt-1 pl-2 border-l-2 border-gray-300 italic"><strong>申請備註:</strong><br>${item.applicantRemarks.join('<br>')}</div>`;
                             }
                              if (item.dispatchRemarks.length > 0) {
-                                remarksHtml += `<div class="text-xs text-blue-600 mt-1 pl-2 border-l-2 border-blue-300"><strong>發料備註:</strong><br>${item.dispatchRemarks.join('<br>')}</div>`;
-                            }
+                                 remarksHtml += `<div class="text-xs text-blue-600 mt-1 pl-2 border-l-2 border-blue-300"><strong>發料備註:</strong><br>${item.dispatchRemarks.join('<br>')}</div>`;
+                             }
 
                             itemsHtml += `
                                 <li class="text-sm">
@@ -1239,7 +1265,13 @@
                 const worksheet = XLSX.utils.json_to_sheet(dataToExport);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, '藥品材料申請單');
-                XLSX.writeFile(workbook, `藥品材料申請單_${statsMonthFilter.value || '全部'}.xlsx`);
+                
+                // ***** MODIFIED: Update file name for date range *****
+                const startDateStr = statsDateStartFilter.value || 'all';
+                const endDateStr = statsDateEndFilter.value || 'time';
+                const dateRangeStr = (startDateStr === 'all') ? '全部' : `${startDateStr}_to_${endDateStr}`;
+                
+                XLSX.writeFile(workbook, `藥品材料申請單_${dateRangeStr}.xlsx`);
             }
 
             // --- FORM LOGIC ---
@@ -1540,10 +1572,10 @@
             // --- ***** MODIFIED: MULTI-ITEM FUNCTIONS ***** ---
 
            function populateDatalist(datalistElement) {
-                if (!datalistElement) return;
-                datalistElement.innerHTML = '';
-                state.itemDatabase.forEach(item => {
-                    const option = document.createElement('option');
+                if (!datalistElement) return;
+                datalistElement.innerHTML = '';
+                state.itemDatabase.forEach(item => {
+                    const option = document.createElement('option');
                     
                     // *** 變更 ***: 讓選項顯示 "材料編號 - 藥品名稱"
                     // (排除 "其他" 選項)
@@ -1553,22 +1585,22 @@
                         // 使用 "ID - Name" 格式
                         option.value = `${item.id} - ${item.name}`; 
                     }
-                    datalistElement.appendChild(option);
-                });
-            }
+                    datalistElement.appendChild(option);
+                });
+           }
 
-         function handleItemSelection(event) {
-                const searchInput = event.target;
-                const row = searchInput.closest('.item-row');
-                if (!row) return;
+           function handleItemSelection(event) {
+                const searchInput = event.target;
+                const row = searchInput.closest('.item-row');
+                if (!row) return;
 
-                const materialIdInput = row.querySelector('.material-id-input');
-                const itemUnitInput = row.querySelector('.item-unit-input');
-                const otherItemContainer = row.querySelector('.item-name-other-container');
-                const otherItemInput = row.querySelector('.item-name-other');
-                const itemRemarksInput = row.querySelector('.item-remarks-input');
+                const materialIdInput = row.querySelector('.material-id-input');
+                const itemUnitInput = row.querySelector('.item-unit-input');
+                const otherItemContainer = row.querySelector('.item-name-other-container');
+                const otherItemInput = row.querySelector('.item-name-other');
+                const itemRemarksInput = row.querySelector('.item-remarks-input');
 
-                const value = searchInput.value.trim(); // 這裡可能是 "ID - Name"
+                const value = searchInput.value.trim(); // 這裡可能是 "ID - Name"
 
                 // *** 變更 ***: 更新尋找邏輯
                 // 1. 優先比對 "ID - Name" 格式 (當使用者剛從 datalist 選擇時)
@@ -1581,47 +1613,47 @@
                     selectedItem = state.itemDatabase.find(item => item.name === value);
                 }
 
-                if (value === "其他(自行輸入)") {
+                if (value === "其他(自行輸入)") {
                     // (此邏輯不變)
-                    otherItemContainer.classList.remove('hidden');
-                    materialIdInput.value = '';
-                    itemUnitInput.value = '';
-                    materialIdInput.disabled = false;
-                    itemUnitInput.disabled = false;
-                    itemRemarksInput.disabled = false; 
-                    materialIdInput.classList.remove('disabled-input');
-                    itemUnitInput.classList.remove('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input'); 
-                    otherItemInput.focus();
-                } else if (selectedItem) {
+                    otherItemContainer.classList.remove('hidden');
+                    materialIdInput.value = '';
+                    itemUnitInput.value = '';
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input'); 
+                    otherItemInput.focus();
+                } else if (selectedItem) {
                     // (此邏輯是關鍵)
-                    otherItemContainer.classList.add('hidden');
-                    otherItemInput.value = '';
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
                     
                     // *** 變更 ***: 
                     // 無論使用者選的是 "ID - Name" 還是 "Name"，都將輸入框的值設回純 "Name"
-                    searchInput.value = selectedItem.name; 
+                    searchInput.value = selectedItem.name; 
                     
-                    materialIdInput.value = selectedItem.id;
-                    itemUnitInput.value = selectedItem.unit;
-                    materialIdInput.disabled = true;
-                    itemUnitInput.disabled = true;
-                    itemRemarksInput.disabled = false; 
-                    materialIdInput.classList.add('disabled-input');
-                    itemUnitInput.classList.add('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input'); 
-                } else {
+                    materialIdInput.value = selectedItem.id;
+                    itemUnitInput.value = selectedItem.unit;
+                    materialIdInput.disabled = true;
+                    itemUnitInput.disabled = true;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.add('disabled-input');
+                    itemUnitInput.classList.add('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input'); 
+                } else {
                     // (此邏輯不變 - 處理使用者手動輸入非選項內容)
-                    otherItemContainer.classList.add('hidden');
-                    otherItemInput.value = '';
-                    materialIdInput.disabled = false;
-                    itemUnitInput.disabled = false;
-                    itemRemarksInput.disabled = false; 
-                    materialIdInput.classList.remove('disabled-input');
-                    itemUnitInput.classList.remove('disabled-input');
-                    itemRemarksInput.classList.remove('disabled-input');
-                }
-            }
+                    otherItemContainer.classList.add('hidden');
+                    otherItemInput.value = '';
+                    materialIdInput.disabled = false;
+                    itemUnitInput.disabled = false;
+                    itemRemarksInput.disabled = false; 
+                    materialIdInput.classList.remove('disabled-input');
+                    itemUnitInput.classList.remove('disabled-input');
+                    itemRemarksInput.classList.remove('disabled-input');
+                }
+           }
 
             /**
              * Creates and appends a new item row to the form
@@ -1760,7 +1792,8 @@
             adminLoginPromptBtn.addEventListener('click', promptLogin);
             statsLoginPromptBtn.addEventListener('click', promptLogin);
             exportExcelBtn.addEventListener('click', exportToExcel);
-            statsMonthFilter.addEventListener('change', renderStatistics);
+            // ***** MODIFIED: Listen to the new "Apply" button for stats *****
+            statsFilterApplyBtn.addEventListener('click', renderStatistics);
             tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tab)));
             clearBtn.addEventListener('click', resetForm);
             searchBtn.addEventListener('click', handleSearch);
@@ -1982,4 +2015,3 @@
     </script>
 </body>
 </html>
-
